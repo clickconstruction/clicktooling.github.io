@@ -119,26 +119,13 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                 </div>
                                 <div class="col-12">
                                     <div class="mb-3">
-                                        <label for="testAddress" class="form-label">Address</label>
-                                        <input type="text" class="form-control" id="testAddress" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="testCity" class="form-label">City</label>
-                                        <input type="text" class="form-control" id="testCity" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="testState" class="form-label">State</label>
-                                        <input type="text" class="form-control" id="testState" required value="TX">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="mb-3">
-                                        <label for="testZip" class="form-label">Zip Code</label>
-                                        <input type="text" class="form-control" id="testZip" required>
+                                        <label for="testLocation" class="form-label">Full Address</label>
+                                        <textarea class="form-control" id="testLocation" rows="3" required placeholder="Enter complete address including street, city, state, and zip code"></textarea>
+                                        <!-- Hidden fields to store the old values for compatibility -->
+                                        <input type="hidden" id="testAddress">
+                                        <input type="hidden" id="testCity">
+                                        <input type="hidden" id="testState" value="TX">
+                                        <input type="hidden" id="testZip">
                                     </div>
                                 </div>
                             </div>

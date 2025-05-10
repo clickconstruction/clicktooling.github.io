@@ -48,10 +48,31 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('customerEmail').value = customer.email || '';
             document.getElementById('customerPhone').value = customer.phone || '';
             document.getElementById('customerCompany').value = customer.company || '';
+            
+            // Set hidden fields for compatibility
             document.getElementById('testAddress').value = customer.address || '';
             document.getElementById('testCity').value = customer.city || '';
             document.getElementById('testState').value = customer.state || '';
             document.getElementById('testZip').value = customer.zip || '';
+            
+            // Format and set the combined location field
+            let fullAddress = '';
+            if (customer.address) fullAddress += customer.address;
+            if (customer.city) {
+                if (fullAddress) fullAddress += '\n';
+                fullAddress += customer.city;
+            }
+            if (customer.state || customer.zip) {
+                if (customer.city) {
+                    fullAddress += ', ';
+                } else if (fullAddress) {
+                    fullAddress += '\n';
+                }
+                if (customer.state) fullAddress += customer.state;
+                if (customer.zip) fullAddress += ' ' + customer.zip;
+            }
+            
+            document.getElementById('testLocation').value = fullAddress;
         }
     });
     
@@ -63,10 +84,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const customerEmail = document.getElementById('customerEmail').value;
         const customerPhone = document.getElementById('customerPhone').value;
         const customerCompany = document.getElementById('customerCompany').value;
-        const testAddress = document.getElementById('testAddress').value;
-        const testCity = document.getElementById('testCity').value;
-        const testState = document.getElementById('testState').value;
-        const testZip = document.getElementById('testZip').value;
+        
+        // Parse the combined location field to extract components if possible
+        const testLocation = document.getElementById('testLocation').value;
+        let testAddress = document.getElementById('testAddress').value;
+        let testCity = document.getElementById('testCity').value;
+        let testState = document.getElementById('testState').value;
+        let testZip = document.getElementById('testZip').value;
+        
+        // If we have a location but no address components, try to extract them
+        // This is just a best-effort approach for backward compatibility
+        if (testLocation && (!testAddress && !testCity && !testState && !testZip)) {
+            const lines = testLocation.split('\n');
+            if (lines.length >= 1) {
+                testAddress = lines[0].trim();
+            }
+            if (lines.length >= 2) {
+                const cityStateZip = lines[1].trim();
+                const parts = cityStateZip.split(',');
+                if (parts.length >= 1) {
+                    testCity = parts[0].trim();
+                }
+                if (parts.length >= 2) {
+                    const stateZipParts = parts[1].trim().split(' ');
+                    if (stateZipParts.length >= 1) {
+                        testState = stateZipParts[0].trim();
+                    }
+                    if (stateZipParts.length >= 2) {
+                        testZip = stateZipParts[1].trim();
+                    }
+                }
+            }
+        }
         
         // Check if customer already exists
         const existingCustomerIndex = savedCustomers.findIndex(c => c.name === customerName);
@@ -187,10 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const customerPhone = document.getElementById('customerPhone').value;
         const customerCompany = document.getElementById('customerCompany').value;
         
-        const testAddress = document.getElementById('testAddress').value;
-        const testCity = document.getElementById('testCity').value;
-        const testState = document.getElementById('testState').value;
-        const testZip = document.getElementById('testZip').value;
+        const testLocation = document.getElementById('testLocation').value;
         
         const testDate = document.getElementById('testDate').value;
         const testTime = document.getElementById('testTime').value;
@@ -240,8 +286,19 @@ document.addEventListener('DOMContentLoaded', function() {
         template.querySelector('#reportCustomerPhone').textContent = customerPhone;
         template.querySelector('#reportCustomerCompany').textContent = customerCompany;
         
-        template.querySelector('#reportAddress').textContent = testAddress;
-        template.querySelector('#reportCityStateZip').textContent = `${testCity}, ${testState} ${testZip}`;
+        // Format the address for display in the report
+        const addressLines = testLocation.split('\n');
+        if (addressLines.length > 0) {
+            template.querySelector('#reportAddress').textContent = addressLines[0];
+            if (addressLines.length > 1) {
+                template.querySelector('#reportCityStateZip').textContent = addressLines.slice(1).join(', ');
+            } else {
+                template.querySelector('#reportCityStateZip').textContent = '';
+            }
+        } else {
+            template.querySelector('#reportAddress').textContent = '';
+            template.querySelector('#reportCityStateZip').textContent = '';
+        }
         
         template.querySelector('#reportTestDate').textContent = formatDate(testDate);
         template.querySelector('#reportTestDuration').textContent = testDuration;
@@ -352,11 +409,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate invoice preview
     function generateInvoicePreview() {
         // Get form values
-        const testAddress = document.getElementById('testAddress').value;
-        const testCity = document.getElementById('testCity').value;
-        const testState = document.getElementById('testState').value;
-        const testZip = document.getElementById('testZip').value;
-        const fullAddress = `${testAddress}, ${testCity}, ${testState} ${testZip}`;
+        const testLocation = document.getElementById('testLocation').value;
+        
+        // Use the full address as entered
+        const fullAddress = testLocation.replace(/\n/g, '<br>');
 
         // Generate invoice number and date
         const invoiceNumber = generateInvoiceNumber();
