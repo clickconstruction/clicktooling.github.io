@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Click Plumbing - Hydrostatic Test Report</title>
+    <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="img/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4 report-title-custom">Click Plumbing Hydrostatic Test Report Generator <i class="fas fa-wrench"></i></h1>
+                <div class="card mb-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <button class="btn btn-link text-white" type="button" data-bs-toggle="collapse" data-bs-target="#prefillCollapse" aria-expanded="false" aria-controls="prefillCollapse">
+                                Pre-filled Fields
+                            </button>
+                        </h5>
+                    </div>
+                    <div class="collapse" id="prefillCollapse">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="systemTested" class="form-label">System Tested</label>
+                                        <input type="text" class="form-control" id="systemTested" value="Underground sewer lines and associated components.">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="testMethod" class="form-label">Test Method</label>
+                                        <input type="text" class="form-control" id="testMethod" value="Water column test with no applied pressure.">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="testPressure" class="form-label">Test Pressure</label>
+                                        <input type="text" class="form-control" id="testPressure" value="10 feet of head pressure">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="passConclusion" class="form-label">Pass Conclusion</label>
+                                        <textarea class="form-control" id="passConclusion" rows="3">The system is functioning properly at this time. The consistency in water levels throughout the duration of the test indicates the absence of leaks in the sewer lines.</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="failConclusion" class="form-label">Fail Conclusion</label>
+                                        <textarea class="form-control" id="failConclusion" rows="3">The system is not functioning properly at this time. The consistency in water levels throughout the duration of the test indicates leaks in the sewer lines.</textarea>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="certification" class="form-label">Certification</label>
+                                        <textarea class="form-control" id="certification" rows="6">I hereby certify that the Hydrostatic Test was performed according to industry standards and local
+code requirements. All reports only represent measurements taken at this time.
+
+Malachi Whites (#RMP41130)
+Click Plumbing
+Office: (801) 252-5155
+TSBPE: 929 East 41st St Austin TX 78751</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Test Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="hydroTestForm">
+                            <!-- Customer Information -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Customer Information</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="customerName" class="form-label">Customer Name</label>
+                                        <input type="text" class="form-control" id="customerName" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="customerEmail" class="form-label">Customer Email</label>
+                                        <input type="email" class="form-control" id="customerEmail">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="customerPhone" class="form-label">Customer Phone</label>
+                                        <input type="tel" class="form-control" id="customerPhone">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="customerCompany" class="form-label">Company (Optional)</label>
+                                        <input type="text" class="form-control" id="customerCompany">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Location -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Test Location</h4>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="testAddress" class="form-label">Address</label>
+                                        <input type="text" class="form-control" id="testAddress" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="testCity" class="form-label">City</label>
+                                        <input type="text" class="form-control" id="testCity" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="testState" class="form-label">State</label>
+                                        <input type="text" class="form-control" id="testState" required value="TX">
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="testZip" class="form-label">Zip Code</label>
+                                        <input type="text" class="form-control" id="testZip" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Results -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Test Results</h4>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="testResult" id="testPass" value="pass" checked>
+                                        <label class="form-check-label" for="testPass">
+                                            <span class="text-success">PASS</span> - No leaks or pressure loss detected
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="testResult" id="testFail" value="fail">
+                                        <label class="form-check-label" for="testFail">
+                                            <span class="text-danger">FAIL</span> - Leaks or pressure loss detected
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="testNotes" class="form-label">Notes</label>
+                                        <textarea class="form-control" id="testNotes" rows="3" placeholder="Additional notes about the test results"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Test Parameters -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Test Parameters</h4>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="testDate" class="form-label">Test Date</label>
+                                        <input type="date" class="form-control" id="testDate" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="testTime" class="form-label">Test Time</label>
+                                        <input type="time" class="form-control" id="testTime" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="testDuration" class="form-label">Test Duration (minutes)</label>
+                                        <input type="number" class="form-control" id="testDuration" required min="0" value="60">
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="mb-3">
+                                        <label for="testDescription" class="form-label">Test Description</label>
+                                        <textarea class="form-control" id="testDescription" rows="3" placeholder="Describe the scope of the test (e.g., 'Sewer line from house to city main')"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+
+
+                            <!-- Action Buttons -->
+                            <div class="row">
+                                <div class="col-12 d-flex flex-column flex-md-row justify-content-between gap-3">
+                                    <button type="button" class="btn btn-secondary" id="resetForm">Reset Form</button>
+                                    <div class="d-flex flex-wrap gap-3">
+                                        <button type="button" class="btn btn-primary" id="previewReport">Report</button>
+                                        <button type="button" class="btn btn-success" id="generateInvoice">Invoice</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Preview Modal -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">Click Plumbing Hydrostatic Test Report Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="reportPreview" class="p-3"></div>
+                </div>
+                <div class="modal-footer d-flex flex-column flex-sm-row gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="downloadPDF">Download PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Modal -->
+    <div class="modal fade" id="invoiceModal" tabindex="-1" aria-labelledby="invoiceModalLabel" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="invoiceModalLabel">Click Plumbing Invoice Preview</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="invoicePreview" class="p-3"></div>
+                </div>
+                <div class="modal-footer d-flex flex-column flex-sm-row gap-2">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" id="downloadInvoice">Download Invoice PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Template (Hidden) -->
+    <div id="invoiceTemplate" style="display: none;">
+        <div class="invoice-container">
+            <div class="invoice-header">
+                <div class="company-logo">
+                    <img src="img/logo-wide.png" alt="Click Plumbing Logo" id="invoiceCompanyLogo" style="height: 80px; width: auto;">
+                </div>
+                <div class="invoice-title">
+                    <h2>INVOICE</h2>
+                    <p class="invoice-date">Date: <span id="invoiceDate"></span></p>
+                    <p class="invoice-number">Invoice #: <span id="invoiceNumber"></span></p>
+                </div>
+            </div>
+            
+            <div class="invoice-addresses">
+                <div class="from-address">
+                    <h4>From:</h4>
+                    <p><strong>Click Plumbing LLC</strong></p>
+                    <p>5501 BALCONES DR STE A 141</p>
+                    <p>AUSTIN TX 78731</p>
+                </div>
+                <div class="to-address">
+                    <h4>Bill To:</h4>
+                    <p><strong>Done Right Foundation Repair</strong></p>
+                    <p>115 E Huebinger</p>
+                    <p>Marion TX 78124</p>
+                </div>
+            </div>
+            
+            <div class="invoice-items">
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td id="invoiceDescription">Hydrostatic Test for [Address]</td>
+                            <td>1</td>
+                            <td id="invoiceUnitPrice">$250.00</td>
+                            <td id="invoiceAmount">$250.00</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                            <td id="invoiceTotal">$250.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            
+            <div class="invoice-notes">
+                <h4>Notes:</h4>
+                <p>Thank you for your business! Payment is due within 30 days.</p>
+            </div>
+            
+            <div class="invoice-footer">
+                <p><strong>Click Plumbing LLC</strong> | Phone: (512) 555-1234 | Email: info@clickplumbing.com</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Template (Hidden) -->
+    <div id="reportTemplate" style="display: none;">
+        <div class="report-container">
+            <div class="report-header">
+                <div class="company-logo">
+                    <img src="img/logo-wide.png" alt="Click Plumbing Logo" id="companyLogo" style="height: 80px; width: auto;">
+                </div>
+                <div class="report-title">
+                    <h2>Hydrostatic Test Report</h2>
+                    <p class="report-date">Date: <span id="reportDate"></span></p>
+                </div>
+            </div>
+            
+            <div class="report-sections-row">
+                <div class="report-section half-width">
+                    <h3>Customer Information</h3>
+                    <div class="report-field">
+                        <label>Name:</label>
+                        <span id="reportCustomerName"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>Email:</label>
+                        <span id="reportCustomerEmail"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>Phone:</label>
+                        <span id="reportCustomerPhone"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>Company:</label>
+                        <span id="reportCustomerCompany"></span>
+                    </div>
+                </div>
+                
+                <div class="report-section half-width">
+                    <h3>Test Location</h3>
+                    <div class="report-field">
+                        <label>Address:</label>
+                    </div>
+                    <div class="report-address">
+                        <span id="reportAddress"></span><br>
+                        <span id="reportCityStateZip"></span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h3>Test Details</h3>
+                <div class="report-grid two-columns">
+                    <div class="report-field">
+                        <label>Date:</label>
+                        <span id="reportTestDate"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>System Tested:</label>
+                        <span id="reportSystemTested"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>Test Duration (minutes):</label>
+                        <span id="reportTestDuration"></span>
+                    </div>
+                </div>
+                <div class="report-field">
+                    <label>Test Method:</label>
+                    <span id="reportTestMethod"></span>
+                </div>
+                <div class="report-field">
+                    <label>Description:</label>
+                    <p id="reportDescription"></p>
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h3>Test Results</h3>
+                <div class="report-field full-width">
+                    <span id="reportResult"></span>
+                </div>
+                <div class="report-field full-width">
+                    <label>Conclusion:</label>
+                    <span id="reportConclusion"></span>
+                </div>
+                <div class="report-field full-width">
+                    <label>Notes:</label>
+                    <span id="reportNotes"></span>
+                </div>
+            </div>
+            
+            <div class="report-section">
+                <h3>Certification</h3>
+                <p id="reportCertification" style="white-space: pre-line;"></p>
+            </div>
+            
+            <div class="report-footer">
+                Click Plumbing LLC | Phone: (512) 555-1234 | Email: info@clickplumbing.com
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
