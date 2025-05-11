@@ -8,6 +8,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const minutes = String(today.getMinutes()).padStart(2, '0');
     document.getElementById('testTime').value = `${hours}:${minutes}`;
     
+    // Add event listener to the testLocation field to handle commas
+    const testLocationField = document.getElementById('testLocation');
+    testLocationField.addEventListener('input', function(e) {
+        // Replace commas with spaces to prevent them from creating new lines
+        const value = e.target.value;
+        if (value.includes(',')) {
+            e.target.value = value.replace(/,/g, ' ');
+        }
+    });
+    
     // Customer data management
     let savedCustomers = JSON.parse(localStorage.getItem('savedCustomers') || '[]');
     
@@ -287,11 +297,12 @@ document.addEventListener('DOMContentLoaded', function() {
         template.querySelector('#reportCustomerCompany').textContent = customerCompany;
         
         // Format the address for display in the report
-        const addressLines = testLocation.split('\n');
+        // Since we're removing commas on input, we can just use the address as is
+        const addressLines = testLocation.split('\n').filter(line => line.trim() !== '');
         if (addressLines.length > 0) {
             template.querySelector('#reportAddress').textContent = addressLines[0];
             if (addressLines.length > 1) {
-                template.querySelector('#reportCityStateZip').textContent = addressLines.slice(1).join(', ');
+                template.querySelector('#reportCityStateZip').textContent = addressLines.slice(1).join(' ');
             } else {
                 template.querySelector('#reportCityStateZip').textContent = '';
             }
