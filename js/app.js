@@ -3,10 +3,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     document.getElementById('testDate').valueAsDate = today;
     
-    // Get current time (hours and minutes only)
+    // Get current time (hours and minutes only) - removed testTime field
     const hours = String(today.getHours()).padStart(2, '0');
     const minutes = String(today.getMinutes()).padStart(2, '0');
-    document.getElementById('testTime').value = `${hours}:${minutes}`;
     
     // Add event listener to the testLocation field to handle commas
     const testLocationField = document.getElementById('testLocation');
@@ -227,16 +226,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return date.toLocaleDateString('en-US', options);
     }
     
-    // Format date and time together
-    function formatDateTime(dateString, timeString) {
-        if (!dateString) return '';
-        
-        const date = new Date(dateString);
-        const options = { year: 'numeric', month: 'long', day: 'numeric' };
-        const formattedDate = date.toLocaleDateString('en-US', options);
-        
-        return `${formattedDate} at ${timeString}`;
-    }
+    // Format date and time together function has been removed as it's no longer needed
 
     // Populate report preview with form data
     function populateReportPreview() {
@@ -249,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const testLocation = document.getElementById('testLocation').value;
         
         const testDate = document.getElementById('testDate').value;
-        const testTime = document.getElementById('testTime').value;
         const testDuration = document.getElementById('testDuration').value;
         const testDescription = document.getElementById('testDescription').value;
         const systemTested = document.getElementById('systemTested').value;
@@ -341,7 +330,6 @@ document.addEventListener('DOMContentLoaded', function() {
             testState: testState,
             testZip: testZip,
             testDate: testDate,
-            testTime: testTime,
             testDuration: testDuration,
             systemTested: systemTested,
             testMethod: testMethod,
@@ -659,7 +647,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const now = new Date();
                 const hours = String(now.getHours()).padStart(2, '0');
                 const minutes = String(now.getMinutes()).padStart(2, '0');
-                document.getElementById('testTime').value = `${hours}:${minutes}`;
                 
                 // Clear any validation styling
                 const invalidFields = document.querySelectorAll('.is-invalid');
@@ -698,7 +685,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('testZip').value = reportData.testZip || '';
         
         document.getElementById('testDate').value = reportData.testDate || '';
-        document.getElementById('testTime').value = reportData.testTime || '';
         document.getElementById('testDuration').value = reportData.testDuration || '';
         document.getElementById('testDescription').value = reportData.testDescription || '';
         
