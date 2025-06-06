@@ -213,24 +213,209 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Generate unique report ID
     function generateReportId() {
-        const timestamp = Date.now().toString();
-        return 'RPT-' + timestamp.substring(timestamp.length - 8);
+    
+    // If we have a location but no address components, try to extract them
+    // This is just a best-effort approach for backward compatibility
+    if (testLocation && (!testAddress && !testCity && !testState && !testZip)) {
+        const lines = testLocation.split('\n');
+        if (lines.length >= 1) {
+            testAddress = lines[0].trim();
+        }
+        if (lines.length >= 2) {
+            const cityStateZip = lines[1].trim();
+            const parts = cityStateZip.split(',');
+            if (parts.length >= 1) {
+                testCity = parts[0].trim();
+            }
+            if (parts.length >= 2) {
+                const stateZipParts = parts[1].trim().split(' ');
+                if (stateZipParts.length >= 1) {
+                    testState = stateZipParts[0].trim();
+                }
+                if (stateZipParts.length >= 2) {
+                    testZip = stateZipParts[1].trim();
+                }
+            }
+        }
     }
     
-    // Format date for display
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        
-        const date = new Date(dateString);
+    // Check if customer already exists
+    const existingCustomerIndex = savedCustomers.findIndex(c => c.name === customerName);
+    
+    if (existingCustomerIndex !== -1) {
+        // Update existing customer
+        savedCustomers[existingCustomerIndex] = {
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone,
+            company: customerCompany,
+            address: testAddress,
+            city: testCity,
+            state: testState,
+            zip: testZip
+        };
+    } else {
+        // Add new customer
+        savedCustomers.push({
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone,
+            company: customerCompany,
+            address: testAddress,
+            city: testCity,
+            state: testState,
+            zip: testZip
+        });
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('savedCustomers', JSON.stringify(savedCustomers));
+    
+    // Update datalist
+    updateCustomerDatalist();
+}
+
+// Initialize modals with accessibility options
+const previewModal = new bootstrap.Modal(document.getElementById('previewModal'), {
+    backdrop: true,
+    keyboard: true,
+    focus: true
+});
+const invoiceModal = new bootstrap.Modal(document.getElementById('invoiceModal'), {
+    backdrop: true,
+    keyboard: true,
+    focus: true
+});
+    
+// Fix modal accessibility issues with aria-hidden
+function setupModalAccessibility(modalId) {
+    const modalElement = document.getElementById(modalId);
+    
+    // Remove aria-hidden immediately when shown
+    modalElement.addEventListener('shown.bs.modal', function() {
+        this.removeAttribute('aria-hidden');
+    });
+    
+    // Use MutationObserver to prevent aria-hidden from being added
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && 
+                mutation.attributeName === 'aria-hidden' && 
+                modalElement.getAttribute('aria-hidden') === 'true' && 
+                modalElement.style.display === 'block') {
+                modalElement.removeAttribute('aria-hidden');
+            }
+        });
+    });
+    
+    observer.observe(modalElement, { attributes: true });
+    
+    // Also handle when the modal is about to be shown
+    modalElement.addEventListener('show.bs.modal', function() {
+        setTimeout(() => {
+            if (this.getAttribute('aria-hidden') === 'true') {
+                this.removeAttribute('aria-hidden');
+            }
+        }, 0);
+    });
+}
+    
+// Set up accessibility fixes for both modals
+setupModalAccessibility('previewModal');
+setupModalAccessibility('invoiceModal');
+    
+// Generate unique report ID
+function generateReportId() {
+    const timestamp = Date.now().toString();
+    return 'RPT-' + timestamp.substring(timestamp.length - 8);
+}
+    
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '';
+    
+    // Split the date string and create a date object with local timezone
+    // This prevents timezone issues when parsing YYYY-MM-DD format
+    const [year, month, day] = dateString.split('-');
+    if (year && month && day) {
+        // Create date with local timezone (months are 0-indexed in JS Date)
+        const date = new Date(year, month - 1, day);
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         return date.toLocaleDateString('en-US', options);
     }
     
-    // Format date and time together function has been removed as it's no longer needed
+    // Fallback to standard parsing if the format is different
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
+    
+// Format date and time together function has been removed as it's no longer needed
 
-    // Populate report preview with form data
-    function populateReportPreview() {
-        // Get form values
+// Populate report preview with form data
+function populateReportPreview() {
+    // Get form values
+    const customerName = document.getElementById('customerName').value;
+    const customerEmail = document.getElementById('customerEmail').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const customerCompany = document.getElementById('customerCompany').value;
+    
+    const testLocation = document.getElementById('testLocation').value;
+    
+    const testDate = document.getElementById('testDate').value;
+    const testDuration = document.getElementById('testDuration').value;
+    const testDescription = document.getElementById('testDescription').value;
+    const systemTested = document.getElementById('systemTested').value;
+    const testMethod = document.getElementById('testMethod').value;
+    
+    const testResult = document.querySelector('input[name="testResult"]:checked').value;
+    const testNotes = document.getElementById('testNotes').value;
+    
+    // Get the appropriate conclusion based on test result
+    const passConclusion = document.getElementById('passConclusion').value;
+    const failConclusion = document.getElementById('failConclusion').value;
+    const conclusion = testResult === 'pass' ? passConclusion : failConclusion;
+    
+    // Get certification text
+    const certification = document.getElementById('certification').value;
+    
+    // Generate report ID and timestamp
+    const reportId = generateReportId();
+    const generatedTimestamp = new Date().toLocaleString();
+    
+    // Format test result display
+    let resultDisplay = '';
+    if (testResult === 'pass') {
+        resultDisplay = '<span class="report-pass">PASS</span> - No leaks or pressure loss detected';
+    } else {
+        resultDisplay = '<span class="report-fail">FAIL</span> - Leaks or pressure loss detected';
+    }
+    
+    // Clone the template
+    const template = document.getElementById('reportTemplate').cloneNode(true);
+    template.style.display = 'block';
+    
+    // Preload the logo to ensure it's visible
+    const logoImg = template.querySelector('#companyLogo');
+    if (logoImg) {
+        logoImg.src = 'img/logo-wide.png';
+        logoImg.style.display = 'block';
+    }
+    
+    // Populate the template with data
+    template.querySelector('#reportDate').textContent = formatDate(testDate);
+    template.querySelector('#reportCustomerName').textContent = customerName;
+    template.querySelector('#reportCustomerEmail').textContent = customerEmail;
+    template.querySelector('#reportCustomerPhone').textContent = customerPhone;
+    template.querySelector('#reportCustomerCompany').textContent = customerCompany;
+    
+    // Format the address for display in the report
+    // Since we're removing commas on input, we can just use the address as is
+    const addressLines = testLocation.split('\n').filter(line => line.trim() !== '');
+    if (addressLines.length > 0) {
+        template.querySelector('#reportAddress').textContent = addressLines[0];
+        if (addressLines.length > 1) {
+            template.querySelector('#reportCityStateZip').textContent = addressLines.slice(1).join(' ');
         const customerName = document.getElementById('customerName').value;
         const customerEmail = document.getElementById('customerEmail').value;
         const customerPhone = document.getElementById('customerPhone').value;
