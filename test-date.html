@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Test</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Date Format Test</h1>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="testDate" class="form-label">Select a Date</label>
+                    <input type="date" class="form-control" id="testDate">
+                </div>
+                <button class="btn btn-primary" id="formatButton">Format Date</button>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        Formatted Date
+                    </div>
+                    <div class="card-body">
+                        <p id="formattedDate">Select a date and click the button</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize date field with current date
+            const today = new Date();
+            document.getElementById('testDate').valueAsDate = today;
+            
+            // Format date function
+            function formatDate(dateString) {
+                if (!dateString) return '';
+                
+                // Split the date string and create a date object with local timezone
+                // This prevents timezone issues when parsing YYYY-MM-DD format
+                const [year, month, day] = dateString.split('-');
+                if (year && month && day) {
+                    // Create date with local timezone (months are 0-indexed in JS Date)
+                    const date = new Date(year, month - 1, day);
+                    const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                    return date.toLocaleDateString('en-US', options);
+                }
+                
+                // Fallback to standard parsing if the format is different
+                const date = new Date(dateString);
+                const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                return date.toLocaleDateString('en-US', options);
+            }
+            
+            // Format button click handler
+            document.getElementById('formatButton').addEventListener('click', function() {
+                const dateValue = document.getElementById('testDate').value;
+                const formattedDate = formatDate(dateValue);
+                document.getElementById('formattedDate').textContent = formattedDate;
+                
+                // Also show the raw date value
+                document.getElementById('formattedDate').innerHTML += '<br><small class="text-muted">Raw value: ' + dateValue + '</small>';
+            });
+        });
+    </script>
+</body>
+</html>
