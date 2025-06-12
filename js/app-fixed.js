@@ -159,36 +159,37 @@ document.addEventListener('DOMContentLoaded', function() {
         focus: true
     });
     
-    // Fix modal accessibility issues with aria-hidden
+    // Fix modal accessibility issues with aria-hidden and focus management
     function setupModalAccessibility(modalId) {
         const modalElement = document.getElementById(modalId);
+        if (!modalElement) return;
         
-        // Remove aria-hidden immediately when shown
+        // Instead of removing aria-hidden, use the inert attribute on other elements
+        // This is the recommended approach for accessibility
         modalElement.addEventListener('shown.bs.modal', function() {
-            this.removeAttribute('aria-hidden');
+            // Make sure the modal is not inert
+            this.removeAttribute('inert');
+            
+            // Focus the first focusable element in the modal
+            const focusableElements = this.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusableElements.length > 0) {
+                focusableElements[0].focus();
+            }
         });
         
-        // Use MutationObserver to prevent aria-hidden from being added
-        const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-                if (mutation.type === 'attributes' && 
-                    mutation.attributeName === 'aria-hidden' && 
-                    modalElement.getAttribute('aria-hidden') === 'true' && 
-                    modalElement.style.display === 'block') {
-                    modalElement.removeAttribute('aria-hidden');
-                }
-            });
-        });
+        // When modal is hidden, restore focus to the element that opened it
+        let previousActiveElement = null;
         
-        observer.observe(modalElement, { attributes: true });
-        
-        // Also handle when the modal is about to be shown
         modalElement.addEventListener('show.bs.modal', function() {
-            setTimeout(() => {
-                if (this.getAttribute('aria-hidden') === 'true') {
-                    this.removeAttribute('aria-hidden');
-                }
-            }, 0);
+            // Store the currently focused element
+            previousActiveElement = document.activeElement;
+        });
+        
+        modalElement.addEventListener('hidden.bs.modal', function() {
+            // Restore focus to the element that opened the modal
+            if (previousActiveElement) {
+                previousActiveElement.focus();
+            }
         });
     }
     
@@ -367,62 +368,92 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Generate PDF function using HTML-to-Canvas-to-PDF approach
     function generatePDF(reportData) {
-        // Create loading indicator
+        // Get the report container element
+        const reportElement = document.querySelector('#reportPreview .report-container');
+        
+        if (!reportElement) {
+            console.error('Report element not found');
+            return;
+        }
+        
+        // Show a loading indicator
         const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.textContent = 'Generating PDF...';
         loadingIndicator.style.position = 'fixed';
         loadingIndicator.style.top = '50%';
         loadingIndicator.style.left = '50%';
         loadingIndicator.style.transform = 'translate(-50%, -50%)';
-        loadingIndicator.style.padding = '20px';
         loadingIndicator.style.background = 'rgba(0,0,0,0.7)';
         loadingIndicator.style.color = 'white';
+        loadingIndicator.style.padding = '20px';
         loadingIndicator.style.borderRadius = '5px';
         loadingIndicator.style.zIndex = '9999';
-        loadingIndicator.textContent = 'Generating PDF...';
         document.body.appendChild(loadingIndicator);
         
-        // Get the report container
-        const reportContainer = document.querySelector('#reportPreview .report-container');
+        // Create a clone of the report element to avoid modifying the original
+        const clone = reportElement.cloneNode(true);
         
-        // Use html2canvas to capture the report as an image
-        html2canvas(reportContainer, {
+        // Create a wrapper with fixed dimensions
+        const wrapper = document.createElement('div');
+        wrapper.style.width = '8.5in';
+        wrapper.style.height = '11in';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '-9999px';
+        wrapper.style.backgroundColor = '#ffffff';
+        wrapper.style.padding = '0.5in';
+        wrapper.style.boxSizing = 'border-box';
+        wrapper.style.overflow = 'hidden';
+        
+        // Style the clone to fit properly in the fixed-size container
+        clone.style.width = '100%';
+        clone.style.height = 'auto';
+        clone.style.position = 'relative';
+        clone.style.margin = '0';
+        clone.style.padding = '0';
+        clone.style.transform = 'none';
+        clone.style.boxShadow = 'none';
+        
+        // Add the clone to the wrapper and the wrapper to the document
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+        
+        // Use html2canvas to capture the wrapper as an image
+        html2canvas(wrapper, {
             scale: 2, // Higher scale for better quality
-            useCORS: true, // Allow loading of images from other domains
-            allowTaint: true,
+            useCORS: true,
+            logging: false,
             backgroundColor: '#ffffff'
         }).then(canvas => {
-            // Create PDF
+            // Create PDF with jsPDF - using inches for US Letter size (8.5 x 11)
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'letter');
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'in',
+                format: 'letter' // US Letter size (8.5 x 11 inches)
+            });
             
-            // Calculate dimensions
+            // Add the image to the PDF - maintaining aspect ratio without stretching
             const imgData = canvas.toDataURL('image/png');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const canvasWidth = canvas.width;
-            const canvasHeight = canvas.height;
+            pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 11);
             
-            // Calculate the scale to fit the canvas to the PDF
-            const scale = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight) * 0.9;
-            const scaledWidth = canvasWidth * scale;
-            const scaledHeight = canvasHeight * scale;
-            
-            // Center the image on the page
-            const x = (pdfWidth - scaledWidth) / 2;
-            const y = (pdfHeight - scaledHeight) / 2;
-            
-            // Add the image to the PDF
-            pdf.addImage(imgData, 'PNG', x, y, scaledWidth, scaledHeight);
+            // Clean up - remove the temporary elements
+            document.body.removeChild(wrapper);
             
             // Generate filename with customer name and date
             const customerName = reportData.customerName || 'Customer';
             const testDate = reportData.testDate || new Date().toLocaleDateString();
             const safeCustomerName = customerName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-            const safeDate = testDate.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const safeDate = testDate.replace(/[^0-9]/g, '-');
             const filename = `Click_Plumbing_Report_${safeCustomerName}_${safeDate}.pdf`;
             
-            // Save the PDF
-            pdf.save(filename);
+            // Open the PDF in a new tab instead of downloading it
+            const pdfOutput = pdf.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfOutput);
+            
+            // Open in new tab
+            window.open(pdfUrl, '_blank');
             
             // Remove loading indicator
             document.body.removeChild(loadingIndicator);
@@ -457,4 +488,227 @@ document.addEventListener('DOMContentLoaded', function() {
         generateInvoicePreview();
         invoiceModal.show();
     });
+    
+    // Download invoice PDF button
+    document.getElementById('downloadInvoice').addEventListener('click', function() {
+        generateInvoicePDF();
+    });
+    
+    // Generate invoice preview with form data
+    function generateInvoicePreview() {
+        // Get form values
+        const customerName = document.getElementById('customerName').value;
+        const customerEmail = document.getElementById('customerEmail').value;
+        const customerPhone = document.getElementById('customerPhone').value;
+        const customerCompany = document.getElementById('customerCompany').value;
+        
+        const testLocation = document.getElementById('testLocation').value;
+        const testDate = document.getElementById('testDate').value;
+        const testDuration = document.getElementById('testDuration').value;
+        const testDescription = document.getElementById('testDescription').value;
+        const systemTested = document.getElementById('systemTested').value;
+        
+        // Generate invoice ID and date
+        const invoiceId = 'INV-' + Date.now().toString().substring(6);
+        const invoiceDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        
+        // Set fixed pricing
+        const basePrice = 250;
+        const total = basePrice;
+        
+        // Log calculation values for debugging
+        console.log('Invoice calculation:', {
+            basePrice,
+            total
+        });
+        
+        // Format currency
+        const formatCurrency = (amount) => {
+            return '$' + amount.toFixed(2);
+        };
+        
+        // Clone the invoice template
+        const template = document.getElementById('invoiceTemplate').cloneNode(true);
+        template.style.display = 'block';
+        
+        // Populate the template with data
+        template.querySelector('#invoiceDate').textContent = invoiceDate;
+        template.querySelector('#invoiceNumber').textContent = invoiceId;
+        
+        // Update the to-address section with customer info
+        const toAddressDiv = template.querySelector('.to-address');
+        if (toAddressDiv) {
+            // Clear existing content except the heading
+            const heading = toAddressDiv.querySelector('h4');
+            toAddressDiv.innerHTML = '';
+            if (heading) {
+                toAddressDiv.appendChild(heading);
+            } else {
+                const newHeading = document.createElement('h4');
+                newHeading.textContent = 'Bill To:';
+                toAddressDiv.appendChild(newHeading);
+            }
+            
+            // Add customer name
+            const namePara = document.createElement('p');
+            const nameStrong = document.createElement('strong');
+            nameStrong.textContent = customerName;
+            namePara.appendChild(nameStrong);
+            toAddressDiv.appendChild(namePara);
+            
+            // Add company if available
+            if (customerCompany) {
+                const companyPara = document.createElement('p');
+                companyPara.textContent = customerCompany;
+                toAddressDiv.appendChild(companyPara);
+            }
+            
+            // Add address
+            const addressLines = testLocation.split('\n').filter(line => line.trim() !== '');
+            addressLines.forEach(line => {
+                const addressPara = document.createElement('p');
+                addressPara.textContent = line;
+                toAddressDiv.appendChild(addressPara);
+            });
+        }
+        
+        // Parse address lines
+        const addressLines = testLocation.split('\n').filter(line => line.trim() !== '');
+        
+        // Set service description
+        let serviceDesc = `Hydrostatic Test: ${systemTested || 'Plumbing System'}`;
+        if (testDescription) {
+            serviceDesc += ` - ${testDescription}`;
+        }
+        
+        // Add location to description
+        if (addressLines && addressLines.length > 0) {
+            serviceDesc += ` at ${addressLines[0]}`;
+        }
+        
+        // Update invoice table
+        const descriptionCell = template.querySelector('#invoiceDescription');
+        if (descriptionCell) {
+            descriptionCell.textContent = serviceDesc;
+        }
+        
+        // Set price
+        const unitPriceCell = template.querySelector('#invoiceUnitPrice');
+        if (unitPriceCell) {
+            unitPriceCell.textContent = formatCurrency(basePrice);
+        }
+        
+        const amountCell = template.querySelector('#invoiceAmount');
+        if (amountCell) {
+            amountCell.textContent = formatCurrency(basePrice);
+        }
+        
+        // Set total (same as base price)
+        const totalCell = template.querySelector('#invoiceTotal');
+        if (totalCell) {
+            totalCell.textContent = formatCurrency(total);
+        }
+        
+        // Clear previous invoice and add the new one
+        const invoiceContainer = document.getElementById('invoicePreview');
+        invoiceContainer.innerHTML = '';
+        invoiceContainer.appendChild(template);
+    }
+    
+    // Generate and download invoice PDF
+    function generateInvoicePDF() {
+        // Get the invoice container element
+        const invoiceElement = document.querySelector('#invoicePreview .invoice-container');
+        
+        if (!invoiceElement) {
+            console.error('Invoice element not found');
+            return;
+        }
+        
+        // Show a loading indicator
+        const loadingIndicator = document.createElement('div');
+        loadingIndicator.className = 'loading-indicator';
+        loadingIndicator.textContent = 'Generating PDF...';
+        loadingIndicator.style.position = 'fixed';
+        loadingIndicator.style.top = '50%';
+        loadingIndicator.style.left = '50%';
+        loadingIndicator.style.transform = 'translate(-50%, -50%)';
+        loadingIndicator.style.background = 'rgba(0,0,0,0.7)';
+        loadingIndicator.style.color = 'white';
+        loadingIndicator.style.padding = '20px';
+        loadingIndicator.style.borderRadius = '5px';
+        loadingIndicator.style.zIndex = '9999';
+        document.body.appendChild(loadingIndicator);
+        
+        // Create a clone of the invoice element to avoid modifying the original
+        const clone = invoiceElement.cloneNode(true);
+        
+        // Create a wrapper with fixed dimensions
+        const wrapper = document.createElement('div');
+        wrapper.style.width = '8.5in';
+        wrapper.style.height = '11in';
+        wrapper.style.position = 'absolute';
+        wrapper.style.left = '-9999px';
+        wrapper.style.top = '-9999px';
+        wrapper.style.backgroundColor = '#ffffff';
+        wrapper.style.padding = '0.5in';
+        wrapper.style.boxSizing = 'border-box';
+        wrapper.style.overflow = 'hidden';
+        
+        // Style the clone to fit properly in the fixed-size container
+        clone.style.width = '100%';
+        clone.style.height = 'auto';
+        clone.style.position = 'relative';
+        clone.style.margin = '0';
+        clone.style.padding = '0';
+        clone.style.transform = 'none';
+        clone.style.boxShadow = 'none';
+        
+        // Add the clone to the wrapper and the wrapper to the document
+        wrapper.appendChild(clone);
+        document.body.appendChild(wrapper);
+        
+        // Use html2canvas to capture the wrapper as an image
+        html2canvas(wrapper, {
+            scale: 2, // Higher scale for better quality
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            // Create PDF with jsPDF - using inches for US Letter size (8.5 x 11)
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'in',
+                format: 'letter' // US Letter size (8.5 x 11 inches)
+            });
+            
+            // Add the image to the PDF - maintaining aspect ratio without stretching
+            const imgData = canvas.toDataURL('image/png');
+            pdf.addImage(imgData, 'PNG', 0, 0, 8.5, 11);
+            
+            // Clean up - remove the temporary elements
+            document.body.removeChild(wrapper);
+            
+            // Generate a filename with customer name and date
+            const customerName = document.getElementById('customerName').value || 'customer';
+            const testLocation = document.getElementById('testLocation').value || 'location';
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `Click_Plumbing_Invoice_${customerName.replace(/\s+/g, '_')}_${dateStr}.pdf`;
+            
+            // Open the PDF in a new tab instead of downloading it
+            const pdfOutput = pdf.output('blob');
+            const pdfUrl = URL.createObjectURL(pdfOutput);
+            
+            // Open in new tab
+            window.open(pdfUrl, '_blank');
+            
+            // Remove the loading indicator
+            document.body.removeChild(loadingIndicator);
+        }).catch(error => {
+            console.error('Error generating PDF:', error);
+            alert('Error generating PDF. Please try again.');
+            document.body.removeChild(loadingIndicator);
+        });
+    }
 });
