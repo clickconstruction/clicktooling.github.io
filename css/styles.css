@@ -31,6 +31,33 @@ h1.report-title-custom {
     margin-bottom: 2rem;
 }
 
+/* Test Type Button Styles */
+.test-type-btn {
+    min-height: 80px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.test-type-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.test-type-btn.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.4);
+}
+
+.test-type-btn.active:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-2px);
+}
+
 /* Signature Pad Styles */
 .signature-pad {
     width: 100%;

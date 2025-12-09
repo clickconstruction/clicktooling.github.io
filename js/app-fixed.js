@@ -223,6 +223,16 @@ document.addEventListener('DOMContentLoaded', function() {
         return date.toLocaleDateString('en-US', options);
     }
     
+    // Format test type for display
+    function formatTestType(testTypeValue) {
+        const testTypeMap = {
+            'pre-test': 'Pre-Test',
+            'post-test': 'Post-Test',
+            'pinpoint-test': 'Pinpoint Test'
+        };
+        return testTypeMap[testTypeValue] || '';
+    }
+    
     // Populate report preview with form data
     function populateReportPreview() {
         // Get form values
@@ -232,12 +242,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const customerCompany = document.getElementById('customerCompany').value;
         
         const testLocation = document.getElementById('testLocation').value;
-        
+        const testType = document.getElementById('testType').value;
         const testDate = document.getElementById('testDate').value;
         const testDuration = document.getElementById('testDuration').value;
         const testDescription = document.getElementById('testDescription').value;
         const systemTested = document.getElementById('systemTested').value;
         const testMethod = document.getElementById('testMethod').value;
+        
+        // Get pinpoint test fields if applicable
+        const pinpointLocation = document.getElementById('pinpointLocation').value;
+        const pinpointMethod = document.getElementById('pinpointMethod').value;
+        const pinpointFindings = document.getElementById('pinpointFindings').value;
         
         const testResult = document.querySelector('input[name="testResult"]:checked').value;
         const testNotes = document.getElementById('testNotes').value;
@@ -273,6 +288,15 @@ document.addEventListener('DOMContentLoaded', function() {
             logoImg.style.display = 'block';
         }
         
+        // Format test type for title
+        const testTypeDisplay = formatTestType(testType);
+        const titleText = testTypeDisplay 
+            ? `${testTypeDisplay} Hydrostatic Test` 
+            : 'Hydrostatic Test';
+        
+        // Update report title
+        template.querySelector('#reportTestTypeTitle').textContent = titleText;
+        
         // Populate the template with data
         template.querySelector('#reportDate').textContent = formatDate(testDate);
         template.querySelector('#reportCustomerName').textContent = customerName;
@@ -295,11 +319,25 @@ document.addEventListener('DOMContentLoaded', function() {
             template.querySelector('#reportCityStateZip').textContent = '';
         }
         
+        // Populate test type in details
+        template.querySelector('#reportTestType').textContent = testTypeDisplay;
+        
         template.querySelector('#reportTestDate').textContent = formatDate(testDate);
         template.querySelector('#reportTestDuration').textContent = testDuration;
         template.querySelector('#reportSystemTested').textContent = systemTested;
         template.querySelector('#reportTestMethod').textContent = testMethod;
         template.querySelector('#reportDescription').textContent = testDescription;
+        
+        // Handle pinpoint test details
+        const pinpointDetails = template.querySelector('#pinpointTestDetails');
+        if (testType === 'pinpoint-test') {
+            pinpointDetails.style.display = 'block';
+            template.querySelector('#reportPinpointLocation').textContent = pinpointLocation || 'N/A';
+            template.querySelector('#reportPinpointMethod').textContent = pinpointMethod || 'N/A';
+            template.querySelector('#reportPinpointFindings').textContent = pinpointFindings || 'N/A';
+        } else {
+            pinpointDetails.style.display = 'none';
+        }
         
         template.querySelector('#reportResult').innerHTML = resultDisplay;
         template.querySelector('#reportConclusion').textContent = conclusion;
@@ -332,6 +370,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const customerName = document.getElementById('customerName').value;
         const testLocation = document.getElementById('testLocation').value;
         const testDate = document.getElementById('testDate').value;
+        const testType = document.getElementById('testType').value;
         
         if (!customerName) {
             alert('Please enter a customer name');
@@ -348,6 +387,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!testDate) {
             alert('Please enter a test date');
             document.getElementById('testDate').focus();
+            return false;
+        }
+        
+        if (!testType) {
+            alert('Please select a test type');
+            // Focus on the first test type button
+            const firstButton = document.querySelector('.test-type-btn');
+            if (firstButton) {
+                firstButton.focus();
+            }
             return false;
         }
         
@@ -465,6 +514,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
             document.getElementById('hydroTestForm').reset();
             document.getElementById('testDate').valueAsDate = new Date();
+            // Hide pinpoint test content on reset
+            document.getElementById('pinpointTestContent').style.display = 'none';
+            // Remove active class from all test type buttons
+            document.querySelectorAll('.test-type-btn').forEach(btn => btn.classList.remove('active'));
+            // Clear test type value
+            document.getElementById('testType').value = '';
         }
     });
     
@@ -476,6 +531,37 @@ document.addEventListener('DOMContentLoaded', function() {
         if (value.includes(',')) {
             e.target.value = value.replace(/,/g, ' ');
         }
+    });
+    
+    // Handle test type selection - show/hide pinpoint test content
+    const testTypeInput = document.getElementById('testType');
+    const pinpointContent = document.getElementById('pinpointTestContent');
+    const testTypeButtons = document.querySelectorAll('.test-type-btn');
+    
+    // Add click handlers to test type buttons
+    testTypeButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            testTypeButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Set the hidden input value
+            const testType = this.getAttribute('data-test-type');
+            testTypeInput.value = testType;
+            
+            // Show/hide pinpoint content based on selection
+            if (testType === 'pinpoint-test') {
+                pinpointContent.style.display = 'block';
+            } else {
+                pinpointContent.style.display = 'none';
+                // Clear pinpoint fields when hidden
+                document.getElementById('pinpointLocation').value = '';
+                document.getElementById('pinpointMethod').value = '';
+                document.getElementById('pinpointFindings').value = '';
+            }
+        });
     });
     
     // Generate invoice button
@@ -503,6 +589,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const customerCompany = document.getElementById('customerCompany').value;
         
         const testLocation = document.getElementById('testLocation').value;
+        const testType = document.getElementById('testType').value;
         const testDate = document.getElementById('testDate').value;
         const testDuration = document.getElementById('testDuration').value;
         const testDescription = document.getElementById('testDescription').value;
@@ -575,8 +662,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Parse address lines
         const addressLines = testLocation.split('\n').filter(line => line.trim() !== '');
         
-        // Set service description
-        let serviceDesc = `Hydrostatic Test: ${systemTested || 'Plumbing System'}`;
+        // Set service description with test type prefix
+        let testTypePrefix = '';
+        if (testType === 'pre-test') {
+            testTypePrefix = 'Preleveling ';
+        } else if (testType === 'post-test') {
+            testTypePrefix = 'Postleveling ';
+        } else if (testType === 'pinpoint-test') {
+            testTypePrefix = 'Pinpoint ';
+        }
+        
+        let serviceDesc = `${testTypePrefix}Hydrostatic Test: ${systemTested || 'Plumbing System'}`;
         if (testDescription) {
             serviceDesc += ` - ${testDescription}`;
         }

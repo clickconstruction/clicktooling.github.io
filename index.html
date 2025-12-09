@@ -132,6 +132,51 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                 </div>
                             </div>
 
+                            <!-- Test Type -->
+                            <div class="row mb-3">
+                                <div class="col-12">
+                                    <h4>Test Type</h4>
+                                    <p class="text-muted mb-3">Select the type of test being performed:</p>
+                                    <div class="d-flex flex-column flex-md-row gap-3 mb-3">
+                                        <button type="button" class="btn btn-outline-primary btn-lg test-type-btn flex-fill" data-test-type="pre-test">
+                                            <i class="fas fa-arrow-circle-left me-2"></i>Pre-Test
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-lg test-type-btn flex-fill" data-test-type="post-test">
+                                            <i class="fas fa-arrow-circle-right me-2"></i>Post-Test
+                                        </button>
+                                        <button type="button" class="btn btn-outline-primary btn-lg test-type-btn flex-fill" data-test-type="pinpoint-test">
+                                            <i class="fas fa-crosshairs me-2"></i>Pinpoint Test
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="testType" required>
+                                </div>
+                            </div>
+
+                            <!-- Pinpoint Test Content (Conditional) -->
+                            <div class="row mb-3" id="pinpointTestContent" style="display: none;">
+                                <div class="col-12">
+                                    <div class="card border-warning">
+                                        <div class="card-header bg-warning text-dark">
+                                            <h5 class="mb-0">Pinpoint Test Information</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label for="pinpointLocation" class="form-label">Pinpoint Location</label>
+                                                <textarea class="form-control" id="pinpointLocation" rows="2" placeholder="Describe the specific location where the pinpoint test was performed"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="pinpointMethod" class="form-label">Pinpoint Test Method</label>
+                                                <textarea class="form-control" id="pinpointMethod" rows="2" placeholder="Describe the method used for pinpoint testing"></textarea>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="pinpointFindings" class="form-label">Pinpoint Findings</label>
+                                                <textarea class="form-control" id="pinpointFindings" rows="3" placeholder="Describe the findings from the pinpoint test"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Test Results -->
                             <div class="row mb-3">
                                 <div class="col-12">
@@ -317,7 +362,7 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                     <img src="img/logo-wide.png" alt="Click Plumbing Logo" id="companyLogo" style="height: 80px; width: auto;">
                 </div>
                 <div class="report-title">
-                    <h2>Hydrostatic Test Report</h2>
+                    <h2><span id="reportTestTypeTitle">Hydrostatic Test</span> Report</h2>
                     <p class="report-date">Date: <span id="reportDate"></span></p>
                 </div>
             </div>
@@ -359,6 +404,10 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                 <h3>Test Details</h3>
                 <div class="report-grid two-columns">
                     <div class="report-field">
+                        <label>Test Type:</label>
+                        <span id="reportTestType"></span>
+                    </div>
+                    <div class="report-field">
                         <label>Date:</label>
                         <span id="reportTestDate"></span>
                     </div>
@@ -369,6 +418,21 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                     <div class="report-field">
                         <label>Test Duration (minutes):</label>
                         <span id="reportTestDuration"></span>
+                    </div>
+                </div>
+                <div class="report-field full-width" id="pinpointTestDetails" style="display: none;">
+                    <h4 style="color: #0d6efd; margin-top: 15px; margin-bottom: 10px;">Pinpoint Test Information</h4>
+                    <div class="report-field">
+                        <label>Pinpoint Location:</label>
+                        <span id="reportPinpointLocation"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>Pinpoint Test Method:</label>
+                        <span id="reportPinpointMethod"></span>
+                    </div>
+                    <div class="report-field">
+                        <label>Pinpoint Findings:</label>
+                        <p id="reportPinpointFindings"></p>
                     </div>
                 </div>
                 <div class="report-field">
