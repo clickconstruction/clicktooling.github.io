@@ -437,18 +437,42 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Handle pinpoint test details
         const pinpointDetails = template.querySelector('#pinpointTestDetails');
-        if (testType === 'pinpoint-test') {
-            pinpointDetails.style.display = 'block';
-            template.querySelector('#reportPinpointLocation').textContent = pinpointLocation || 'N/A';
-            template.querySelector('#reportPinpointMethod').textContent = pinpointMethod || 'N/A';
-            template.querySelector('#reportPinpointFindings').textContent = pinpointFindings || 'N/A';
-        } else {
-            pinpointDetails.style.display = 'none';
-        }
+        const standardTestResults = template.querySelector('#reportStandardTestResultsSection');
+        const pinpointTestResults = template.querySelector('#reportPinpointResultsSection');
         
-        template.querySelector('#reportResult').innerHTML = resultDisplay;
-        template.querySelector('#reportConclusion').textContent = conclusion;
-        template.querySelector('#reportNotes').textContent = testNotes;
+        if (testType === 'pinpoint-test') {
+            // Hide standard test results section
+            if (standardTestResults) {
+                standardTestResults.style.display = 'none';
+            }
+            // Show pinpoint test results section (replaces Test Results)
+            if (pinpointTestResults) {
+                pinpointTestResults.style.display = 'block';
+                template.querySelector('#reportPinpointResultsLocation').textContent = pinpointLocation || 'N/A';
+                template.querySelector('#reportPinpointResultsMethod').textContent = pinpointMethod || 'N/A';
+                template.querySelector('#reportPinpointResultsFindings').textContent = pinpointFindings || 'N/A';
+            }
+            // Hide pinpoint details in Test Details section
+            if (pinpointDetails) {
+                pinpointDetails.style.display = 'none';
+            }
+        } else {
+            // Show standard test results section
+            if (standardTestResults) {
+                standardTestResults.style.display = 'block';
+            }
+            // Hide pinpoint test results section
+            if (pinpointTestResults) {
+                pinpointTestResults.style.display = 'none';
+            }
+            // Hide pinpoint details in Test Details section
+            if (pinpointDetails) {
+                pinpointDetails.style.display = 'none';
+            }
+            template.querySelector('#reportResult').innerHTML = resultDisplay;
+            template.querySelector('#reportConclusion').textContent = conclusion;
+            template.querySelector('#reportNotes').textContent = testNotes;
+        }
         
         template.querySelector('#reportCertification').textContent = certification;
         
@@ -507,15 +531,18 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        const testResult = document.getElementById('testResult').value;
-        if (!testResult) {
-            alert('Please select a test result (PASS or FAIL)');
-            // Focus on the first test result button
-            const firstResultButton = document.querySelector('.test-result-btn');
-            if (firstResultButton) {
-                firstResultButton.focus();
+        // Only require test result for non-pinpoint tests
+        if (testType !== 'pinpoint-test') {
+            const testResult = document.getElementById('testResult').value;
+            if (!testResult) {
+                alert('Please select a test result (PASS or FAIL)');
+                // Focus on the first test result button
+                const firstResultButton = document.querySelector('.test-result-btn');
+                if (firstResultButton) {
+                    firstResultButton.focus();
+                }
+                return false;
             }
-            return false;
         }
         
         return true;
@@ -636,6 +663,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('pinpointTestContent').style.display = 'none';
             // Hide supply/sewer content on reset
             document.getElementById('supplySewerContent').style.display = 'none';
+            // Show Test Results section on reset
+            const testResultsSection = document.getElementById('testResultsSection');
+            if (testResultsSection) {
+                testResultsSection.style.display = 'block';
+            }
             // Remove active class from all test type buttons
             document.querySelectorAll('.test-type-btn').forEach(btn => btn.classList.remove('active'));
             // Clear test type value
@@ -738,9 +770,15 @@ document.addEventListener('DOMContentLoaded', function() {
             testTypeInput.value = testType;
             
             // Show/hide pinpoint content based on selection
+            const testResultsSection = document.getElementById('testResultsSection');
+            
             if (testType === 'pinpoint-test') {
                 pinpointContent.style.display = 'block';
                 supplySewerContent.style.display = 'none';
+                // Hide Test Results section (PASS/FAIL) for pinpoint tests
+                if (testResultsSection) {
+                    testResultsSection.style.display = 'none';
+                }
                 // Clear supply/sewer selection
                 document.getElementById('supplySewer').value = '';
                 document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
@@ -750,6 +788,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } else {
                 pinpointContent.style.display = 'none';
+                // Show Test Results section for non-pinpoint tests
+                if (testResultsSection) {
+                    testResultsSection.style.display = 'block';
+                }
                 // Clear pinpoint fields when hidden
                 document.getElementById('pinpointLocation').value = '';
                 document.getElementById('pinpointMethod').value = '';
@@ -758,14 +800,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show supply/sewer buttons for pre-test and post-test
                 if (testType === 'pre-test' || testType === 'post-test') {
                     supplySewerContent.style.display = 'block';
+                    // Auto-select "Sewer" when Pre-Test or Post-Test is selected
+                    const sewerButton = document.querySelector('.supply-sewer-btn[data-supply-sewer="sewer"]');
+                    if (sewerButton && !supplySewerInput.value) {
+                        // Only auto-select if nothing is already selected
+                        sewerButton.click();
+                    }
                 } else {
                     supplySewerContent.style.display = 'none';
                     // Clear supply/sewer selection
                     document.getElementById('supplySewer').value = '';
                     document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
                         btn.classList.remove('active');
-                        btn.classList.remove('btn-info');
-                        btn.classList.add('btn-outline-info');
+                        btn.classList.remove('btn-warning');
+                        btn.classList.add('btn-outline-warning');
                     });
                 }
             }
