@@ -3,6 +3,85 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     document.getElementById('testDate').valueAsDate = today;
     
+    // Function to generate shareable URL with customer information
+    function generateShareableURL() {
+        const customerName = document.getElementById('customerName').value;
+        const customerEmail = document.getElementById('customerEmail').value;
+        const customerPhone = document.getElementById('customerPhone').value;
+        const customerCompany = document.getElementById('customerCompany').value;
+        const testLocation = document.getElementById('testLocation').value;
+        
+        // Only generate URL if we have at least customer name and location
+        if (!customerName || !testLocation) {
+            alert('Please fill in at least Customer Name and Test Location before sharing.');
+            return;
+        }
+        
+        // Create URL parameters
+        const params = new URLSearchParams();
+        params.set('name', customerName);
+        if (customerEmail) params.set('email', customerEmail);
+        if (customerPhone) params.set('phone', customerPhone);
+        if (customerCompany) params.set('company', customerCompany);
+        params.set('location', testLocation);
+        
+        // Get current URL without query parameters
+        const baseURL = window.location.origin + window.location.pathname;
+        const shareableURL = baseURL + '?' + params.toString();
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(shareableURL).then(function() {
+            // Show success feedback
+            const shareButton = document.getElementById('shareCustomerInfo');
+            const originalText = shareButton.innerHTML;
+            shareButton.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+            shareButton.classList.remove('btn-outline-light');
+            shareButton.classList.add('btn-success');
+            
+            setTimeout(function() {
+                shareButton.innerHTML = originalText;
+                shareButton.classList.remove('btn-success');
+                shareButton.classList.add('btn-outline-light');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Failed to copy URL:', err);
+            // Fallback: show URL in a prompt
+            prompt('Copy this URL to share:', shareableURL);
+        });
+    }
+    
+    // Function to parse URL parameters and fill form
+    function loadFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Only fill if we have at least name and location
+        if (urlParams.has('name') && urlParams.has('location')) {
+            document.getElementById('customerName').value = urlParams.get('name') || '';
+            document.getElementById('customerEmail').value = urlParams.get('email') || '';
+            document.getElementById('customerPhone').value = urlParams.get('phone') || '';
+            document.getElementById('customerCompany').value = urlParams.get('company') || '';
+            document.getElementById('testLocation').value = urlParams.get('location') || '';
+            
+            // Show a notification that form was pre-filled
+            const notification = document.createElement('div');
+            notification.className = 'alert alert-info alert-dismissible fade show mt-4';
+            notification.innerHTML = '<i class="fas fa-info-circle me-2"></i>Form has been pre-filled from shared URL. <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            const container = document.querySelector('.container');
+            const firstRow = container.querySelector('.row');
+            if (firstRow) {
+                container.insertBefore(notification, firstRow);
+            } else {
+                container.insertBefore(notification, container.firstChild);
+            }
+            
+            // Clean up URL to remove parameters (optional - keeps URL clean)
+            // window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+    
+    // Load form data from URL on page load
+    loadFromURL();
+    
     // Customer data management
     let savedCustomers = JSON.parse(localStorage.getItem('savedCustomers') || '[]');
     
@@ -224,13 +303,28 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Format test type for display
-    function formatTestType(testTypeValue) {
+    function formatTestType(testTypeValue, supplySewerValue) {
         const testTypeMap = {
             'pre-test': 'Pre-Test',
             'post-test': 'Post-Test',
             'pinpoint-test': 'Pinpoint Test'
         };
-        return testTypeMap[testTypeValue] || '';
+        
+        let baseType = testTypeMap[testTypeValue] || '';
+        
+        // Add Supply or Sewer prefix for pre-test and post-test
+        if ((testTypeValue === 'pre-test' || testTypeValue === 'post-test') && supplySewerValue) {
+            const supplySewerMap = {
+                'supply': 'Supply',
+                'sewer': 'Sewer'
+            };
+            const prefix = supplySewerMap[supplySewerValue] || '';
+            if (prefix) {
+                return `${prefix} ${baseType}`;
+            }
+        }
+        
+        return baseType;
     }
     
     // Populate report preview with form data
@@ -243,6 +337,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const testLocation = document.getElementById('testLocation').value;
         const testType = document.getElementById('testType').value;
+        const supplySewer = document.getElementById('supplySewer').value;
         const testDate = document.getElementById('testDate').value;
         const testDuration = document.getElementById('testDuration').value;
         const testDescription = document.getElementById('testDescription').value;
@@ -254,7 +349,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const pinpointMethod = document.getElementById('pinpointMethod').value;
         const pinpointFindings = document.getElementById('pinpointFindings').value;
         
-        const testResult = document.querySelector('input[name="testResult"]:checked').value;
+        const testResult = document.getElementById('testResult').value;
         const testNotes = document.getElementById('testNotes').value;
         
         // Get the appropriate conclusion based on test result
@@ -289,7 +384,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Format test type for title
-        const testTypeDisplay = formatTestType(testType);
+        const testTypeDisplay = formatTestType(testType, supplySewer);
         const titleText = testTypeDisplay 
             ? `${testTypeDisplay} Hydrostatic Test` 
             : 'Hydrostatic Test';
@@ -320,11 +415,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         // Populate test type in details
-        template.querySelector('#reportTestType').textContent = testTypeDisplay;
+        const testTypeForDetails = formatTestType(testType, supplySewer);
+        template.querySelector('#reportTestType').textContent = testTypeForDetails;
         
         template.querySelector('#reportTestDate').textContent = formatDate(testDate);
         template.querySelector('#reportTestDuration').textContent = testDuration;
-        template.querySelector('#reportSystemTested').textContent = systemTested;
+        
+        // Update System Tested based on Supply/Sewer selection
+        let systemTestedDisplay = systemTested;
+        // Check if supply/sewer is selected and override the systemTested value
+        if (supplySewer && supplySewer.trim() === 'supply') {
+            systemTestedDisplay = 'Water supply lines and associated components.';
+        } else if (supplySewer && supplySewer.trim() === 'sewer') {
+            systemTestedDisplay = 'Underground sewer lines and associated components.';
+        }
+        // If no supply/sewer is selected, use the form value (for Pinpoint Test or if not selected)
+        template.querySelector('#reportSystemTested').textContent = systemTestedDisplay;
+        
         template.querySelector('#reportTestMethod').textContent = testMethod;
         template.querySelector('#reportDescription').textContent = testDescription;
         
@@ -396,6 +503,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const firstButton = document.querySelector('.test-type-btn');
             if (firstButton) {
                 firstButton.focus();
+            }
+            return false;
+        }
+        
+        const testResult = document.getElementById('testResult').value;
+        if (!testResult) {
+            alert('Please select a test result (PASS or FAIL)');
+            // Focus on the first test result button
+            const firstResultButton = document.querySelector('.test-result-btn');
+            if (firstResultButton) {
+                firstResultButton.focus();
             }
             return false;
         }
@@ -516,10 +634,42 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('testDate').valueAsDate = new Date();
             // Hide pinpoint test content on reset
             document.getElementById('pinpointTestContent').style.display = 'none';
+            // Hide supply/sewer content on reset
+            document.getElementById('supplySewerContent').style.display = 'none';
             // Remove active class from all test type buttons
             document.querySelectorAll('.test-type-btn').forEach(btn => btn.classList.remove('active'));
             // Clear test type value
             document.getElementById('testType').value = '';
+            // Clear supply/sewer selection
+            document.getElementById('supplySewer').value = '';
+            document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-warning');
+            });
+            // Reset duration buttons - set 60 as active (default value)
+            document.querySelectorAll('.duration-btn').forEach(btn => btn.classList.remove('active'));
+            const defaultDurationBtn = document.querySelector('.duration-btn[data-duration="60"]');
+            if (defaultDurationBtn) {
+                defaultDurationBtn.classList.add('active');
+            }
+            // Reset date buttons - set today as active (default value)
+            document.querySelectorAll('.date-btn').forEach(btn => btn.classList.remove('active'));
+            const todayDateBtn = document.querySelector('.date-btn[data-date="today"]');
+            if (todayDateBtn) {
+                todayDateBtn.classList.add('active');
+            }
+            // Reset test result buttons - clear selection
+            document.querySelectorAll('.test-result-btn').forEach(btn => {
+                btn.classList.remove('active', 'btn-success', 'btn-danger');
+                const result = btn.getAttribute('data-test-result');
+                if (result === 'pass') {
+                    btn.classList.add('btn-outline-success');
+                } else {
+                    btn.classList.add('btn-outline-danger');
+                }
+            });
+            document.getElementById('testResult').value = '';
         }
     });
     
@@ -533,9 +683,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Handle test type selection - show/hide pinpoint test content
+    // Handle test result buttons
+    const testResultInput = document.getElementById('testResult');
+    const testResultButtons = document.querySelectorAll('.test-result-btn');
+    
+    // Add click handlers to test result buttons
+    testResultButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all result buttons
+            testResultButtons.forEach(btn => {
+                btn.classList.remove('active');
+                // Remove success/danger classes and add outline versions
+                btn.classList.remove('btn-success', 'btn-danger');
+                if (btn.getAttribute('data-test-result') === 'pass') {
+                    btn.classList.add('btn-outline-success');
+                } else {
+                    btn.classList.add('btn-outline-danger');
+                }
+            });
+            
+            // Add active class to clicked button and update styling
+            this.classList.add('active');
+            const result = this.getAttribute('data-test-result');
+            if (result === 'pass') {
+                this.classList.remove('btn-outline-success');
+                this.classList.add('btn-success');
+            } else {
+                this.classList.remove('btn-outline-danger');
+                this.classList.add('btn-danger');
+            }
+            
+            // Set the hidden input value
+            testResultInput.value = result;
+        });
+    });
+    
+    // Handle test type selection - show/hide pinpoint test content and supply/sewer buttons
     const testTypeInput = document.getElementById('testType');
     const pinpointContent = document.getElementById('pinpointTestContent');
+    const supplySewerContent = document.getElementById('supplySewerContent');
     const testTypeButtons = document.querySelectorAll('.test-type-btn');
     
     // Add click handlers to test type buttons
@@ -554,14 +740,184 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show/hide pinpoint content based on selection
             if (testType === 'pinpoint-test') {
                 pinpointContent.style.display = 'block';
+                supplySewerContent.style.display = 'none';
+                // Clear supply/sewer selection
+                document.getElementById('supplySewer').value = '';
+                document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.remove('btn-warning');
+                    btn.classList.add('btn-outline-warning');
+                });
             } else {
                 pinpointContent.style.display = 'none';
                 // Clear pinpoint fields when hidden
                 document.getElementById('pinpointLocation').value = '';
                 document.getElementById('pinpointMethod').value = '';
                 document.getElementById('pinpointFindings').value = '';
+                
+                // Show supply/sewer buttons for pre-test and post-test
+                if (testType === 'pre-test' || testType === 'post-test') {
+                    supplySewerContent.style.display = 'block';
+                } else {
+                    supplySewerContent.style.display = 'none';
+                    // Clear supply/sewer selection
+                    document.getElementById('supplySewer').value = '';
+                    document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.classList.remove('btn-info');
+                        btn.classList.add('btn-outline-info');
+                    });
+                }
             }
         });
+    });
+    
+    // Handle Supply/Sewer buttons
+    const supplySewerInput = document.getElementById('supplySewer');
+    const supplySewerButtons = document.querySelectorAll('.supply-sewer-btn');
+    
+    supplySewerButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            supplySewerButtons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('btn-warning');
+                btn.classList.add('btn-outline-warning');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            this.classList.remove('btn-outline-warning');
+            this.classList.add('btn-warning');
+            
+            // Set the hidden input value
+            const supplySewer = this.getAttribute('data-supply-sewer');
+            supplySewerInput.value = supplySewer;
+        });
+    });
+    
+    // Handle duration quick-fill buttons
+    const durationButtons = document.querySelectorAll('.duration-btn');
+    const testDurationInput = document.getElementById('testDuration');
+    
+    // Update active state when input value changes manually
+    testDurationInput.addEventListener('input', function() {
+        const value = parseInt(this.value);
+        durationButtons.forEach(btn => {
+            if (parseInt(btn.getAttribute('data-duration')) === value) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+    });
+    
+    // Add click handlers to duration buttons
+    durationButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all duration buttons
+            durationButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Set the duration value
+            const duration = this.getAttribute('data-duration');
+            testDurationInput.value = duration;
+        });
+    });
+    
+    // Handle date quick-fill buttons
+    const dateButtons = document.querySelectorAll('.date-btn');
+    const testDateInput = document.getElementById('testDate');
+    
+    // Helper function to format date as YYYY-MM-DD
+    function formatDateForInput(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    // Helper function to check if a date is today or yesterday
+    function checkDateMatch(inputDate) {
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        const input = new Date(inputDate);
+        
+        // Compare dates (ignoring time)
+        const isToday = input.getFullYear() === today.getFullYear() &&
+                       input.getMonth() === today.getMonth() &&
+                       input.getDate() === today.getDate();
+        
+        const isYesterday = input.getFullYear() === yesterday.getFullYear() &&
+                           input.getMonth() === yesterday.getMonth() &&
+                           input.getDate() === yesterday.getDate();
+        
+        return { isToday, isYesterday };
+    }
+    
+    
+    // Add click handlers to date buttons
+    dateButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all date buttons
+            dateButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Set the date value
+            const dateType = this.getAttribute('data-date');
+            const today = new Date();
+            
+            if (dateType === 'today') {
+                testDateInput.valueAsDate = today;
+            } else if (dateType === 'yesterday') {
+                const yesterday = new Date(today);
+                yesterday.setDate(yesterday.getDate() - 1);
+                testDateInput.valueAsDate = yesterday;
+            }
+        });
+    });
+    
+    // Initialize date button active state on page load
+    // Always set "Today" button as active on page load (date field defaults to today)
+    // This runs after the date field is initialized to today
+    function initializeDateButton() {
+        dateButtons.forEach(btn => btn.classList.remove('active'));
+        const todayDateBtn = document.querySelector('.date-btn[data-date="today"]');
+        if (todayDateBtn) {
+            todayDateBtn.classList.add('active');
+        }
+    }
+    
+    // Initialize on page load - always default to "Today"
+    initializeDateButton();
+    
+    // Update button state when date changes manually
+    testDateInput.addEventListener('change', function() {
+        const dateMatch = checkDateMatch(this.value);
+        dateButtons.forEach(btn => btn.classList.remove('active'));
+        
+        if (dateMatch.isToday) {
+            const todayDateBtn = document.querySelector('.date-btn[data-date="today"]');
+            if (todayDateBtn) {
+                todayDateBtn.classList.add('active');
+            }
+        } else if (dateMatch.isYesterday) {
+            const yesterdayDateBtn = document.querySelector('.date-btn[data-date="yesterday"]');
+            if (yesterdayDateBtn) {
+                yesterdayDateBtn.classList.add('active');
+            }
+        }
+    });
+    
+    // Share customer info button
+    document.getElementById('shareCustomerInfo').addEventListener('click', function() {
+        generateShareableURL();
     });
     
     // Generate invoice button
@@ -663,16 +1019,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const addressLines = testLocation.split('\n').filter(line => line.trim() !== '');
         
         // Set service description with test type prefix
+        // Format test type for invoice (includes Supply/Sewer for pre-test and post-test)
+        const formattedTestType = formatTestType(testType, supplySewer);
         let testTypePrefix = '';
-        if (testType === 'pre-test') {
+        
+        if (formattedTestType.includes('Pre-Test')) {
             testTypePrefix = 'Preleveling ';
-        } else if (testType === 'post-test') {
+        } else if (formattedTestType.includes('Post-Test')) {
             testTypePrefix = 'Postleveling ';
         } else if (testType === 'pinpoint-test') {
             testTypePrefix = 'Pinpoint ';
         }
         
-        let serviceDesc = `${testTypePrefix}Hydrostatic Test: ${systemTested || 'Plumbing System'}`;
+        // Add Supply/Sewer prefix if applicable
+        let fullTestType = formattedTestType;
+        if (formattedTestType) {
+            fullTestType = formattedTestType;
+        }
+        
+        let serviceDesc = `${testTypePrefix}Hydrostatic Test`;
         if (testDescription) {
             serviceDesc += ` - ${testDescription}`;
         }

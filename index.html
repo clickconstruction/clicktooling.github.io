@@ -20,12 +20,15 @@
             <div class="col-12">
                 <h1 class="text-center mb-4 report-title-custom">Click Plumbing Hydrostatic Test Report Generator <i class="fas fa-wrench"></i></h1>
                 <div class="card mb-3">
-                    <div class="card-header bg-secondary text-white">
+                    <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
                             <button class="btn btn-link text-white" type="button" data-bs-toggle="collapse" data-bs-target="#prefillCollapse" aria-expanded="false" aria-controls="prefillCollapse">
                                 Pre-filled Fields
                             </button>
                         </h5>
+                        <button type="button" class="btn btn-sm btn-outline-light" id="shareCustomerInfo" title="Generate shareable URL with customer information">
+                            <i class="fas fa-share-alt me-1"></i> Share URL
+                        </button>
                     </div>
                     <div class="collapse" id="prefillCollapse">
                         <div class="card-body">
@@ -152,6 +155,22 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                 </div>
                             </div>
 
+                            <!-- Supply/Sewer Selection (Conditional) -->
+                            <div class="row mb-3" id="supplySewerContent" style="display: none;">
+                                <div class="col-12">
+                                    <p class="text-muted mb-3">Select the system type:</p>
+                                    <div class="d-flex flex-column flex-md-row gap-3 mb-3">
+                                        <button type="button" class="btn btn-outline-warning btn-lg supply-sewer-btn flex-fill" data-supply-sewer="supply">
+                                            <i class="fas fa-faucet me-2"></i>Supply
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning btn-lg supply-sewer-btn flex-fill" data-supply-sewer="sewer">
+                                            <i class="fas fa-toilet me-2"></i>Sewer
+                                        </button>
+                                    </div>
+                                    <input type="hidden" id="supplySewer" value="">
+                                </div>
+                            </div>
+
                             <!-- Pinpoint Test Content (Conditional) -->
                             <div class="row mb-3" id="pinpointTestContent" style="display: none;">
                                 <div class="col-12">
@@ -183,23 +202,23 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                     <h4>Test Results</h4>
                                 </div>
                                 <div class="col-12">
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input" type="radio" name="testResult" id="testPass" value="pass" checked>
-                                        <label class="form-check-label" for="testPass">
-                                            <span class="text-success">PASS</span> - No leaks or pressure loss detected
-                                        </label>
+                                    <p class="text-muted mb-3">Select the test result:</p>
+                                    <div class="d-flex flex-column flex-md-row gap-3 mb-3">
+                                        <button type="button" class="btn btn-outline-success btn-lg test-result-btn flex-fill" data-test-result="pass">
+                                            <i class="fas fa-check-circle me-2"></i>PASS
+                                            <small class="d-block mt-1">No leaks or pressure loss detected</small>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-lg test-result-btn flex-fill" data-test-result="fail">
+                                            <i class="fas fa-times-circle me-2"></i>FAIL
+                                            <small class="d-block mt-1">Leaks or pressure loss detected</small>
+                                        </button>
                                     </div>
-                                    <div class="form-check mb-3">
-                                        <input class="form-check-input" type="radio" name="testResult" id="testFail" value="fail">
-                                        <label class="form-check-label" for="testFail">
-                                            <span class="text-danger">FAIL</span> - Leaks or pressure loss detected
-                                        </label>
-                                    </div>
+                                    <input type="hidden" name="testResult" id="testResult" value="">
                                 </div>
                                 <div class="col-12">
                                     <div class="mb-3">
                                         <label for="testNotes" class="form-label">Notes</label>
-                                        <textarea class="form-control" id="testNotes" rows="3" placeholder="Additional notes about the test results"></textarea>
+                                        <textarea class="form-control" id="testNotes" rows="3" placeholder="Additional notes about the test results | PVC / ABS / Cast Iron | etc. | Lead present?&#10;Measured lost of water? | Prior plumbing work done by others? | Toilets re-installed?"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -212,14 +231,27 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="testDate" class="form-label">Test Date</label>
-                                        <input type="date" class="form-control" id="testDate" required>
+                                        <div class="input-group">
+                                            <input type="date" class="form-control" id="testDate" required>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary date-btn" data-date="yesterday">Yesterday</button>
+                                                <button type="button" class="btn btn-outline-secondary date-btn" data-date="today">Today</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="testDuration" class="form-label">Test Duration (minutes)</label>
-                                        <input type="number" class="form-control" id="testDuration" required min="0" value="60">
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="testDuration" required min="0" value="60">
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary duration-btn" data-duration="20">20</button>
+                                                <button type="button" class="btn btn-outline-secondary duration-btn" data-duration="40">40</button>
+                                                <button type="button" class="btn btn-outline-secondary duration-btn active" data-duration="60">60</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-12">
@@ -346,6 +378,12 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
             <div class="invoice-notes">
                 <h4>Notes:</h4>
                 <p>Thank you for your business! Payment is due upon receipt.</p>
+                <p style="white-space: pre-line; margin-top: 15px;">I hereby certify that the Hydrostatic Test was performed according to industry standards and local code requirements. All reports only represent measurements taken at this time.
+
+Malachi Whites (#RMP41130)
+Click Plumbing
+Office: (801) 252-5155
+TSBPE: 929 East 41st St Austin TX 78751</p>
             </div>
             
             <div class="invoice-footer">

@@ -58,6 +58,87 @@ h1.report-title-custom {
     transform: translateY(-2px);
 }
 
+/* Duration Button Styles */
+.duration-btn {
+    min-width: 50px;
+}
+
+.duration-btn.active {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+/* Date Button Styles */
+.date-btn {
+    min-width: 90px;
+}
+
+.date-btn.active {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+/* Test Result Button Styles */
+.test-result-btn {
+    min-height: 80px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-width: 2px;
+}
+
+.test-result-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.test-result-btn.active.btn-success {
+    box-shadow: 0 4px 12px rgba(25, 135, 84, 0.4);
+}
+
+.test-result-btn.active.btn-danger {
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
+}
+
+.test-result-btn small {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+/* Supply/Sewer Button Styles */
+.supply-sewer-btn {
+    min-height: 80px;
+    font-size: 1.1rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border-width: 2px;
+    border-color: #ff9800;
+    color: #ff9800;
+}
+
+.supply-sewer-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.3);
+    background-color: #fff3e0;
+    border-color: #ff9800;
+    color: #ff9800;
+}
+
+.supply-sewer-btn.active {
+    background-color: #ff9800;
+    border-color: #ff9800;
+    color: white;
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4);
+}
+
+.supply-sewer-btn.active:hover {
+    background-color: #f57c00;
+    border-color: #f57c00;
+    transform: translateY(-2px);
+}
+
 /* Signature Pad Styles */
 .signature-pad {
     width: 100%;
@@ -253,6 +334,14 @@ h1.report-title-custom {
 }
 
 .invoice-table th {
+    white-space: nowrap;
+}
+
+.invoice-table th:nth-child(3) {
+    min-width: 90px;
+}
+
+.invoice-table th {
     background-color: #f8f9fa;
     font-weight: bold;
 }
@@ -262,11 +351,45 @@ h1.report-title-custom {
     background-color: #f8f9fa;
 }
 
+.invoice-test-details {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.invoice-test-detail-row {
+    display: flex;
+    margin-bottom: 8px;
+}
+
+.invoice-test-label {
+    font-weight: bold;
+    margin-right: 10px;
+    min-width: 100px;
+}
+
 .invoice-notes {
     margin-bottom: 30px;
     padding: 15px;
     background-color: #f8f9fa;
     border-radius: 5px;
+}
+
+.invoice-certification {
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.invoice-certification h4 {
+    margin-bottom: 10px;
+}
+
+.invoice-certification p {
+    margin: 0;
+    line-height: 1.6;
 }
 
 .invoice-footer {
