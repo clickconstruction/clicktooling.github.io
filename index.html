@@ -18,7 +18,7 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-12">
-                <h1 class="text-center mb-4 report-title-custom">Click Plumbing Hydrostatic Test Report Generator <i class="fas fa-wrench"></i></h1>
+                <h1 class="text-center mb-4 report-title-custom">Click Plumbing Test Report Generator <i class="fas fa-wrench"></i></h1>
                 <div class="card mb-3">
                     <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">
@@ -117,10 +117,10 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                 </div>
                             </div>
 
-                            <!-- Test Location -->
+                            <!-- Test Location and Date -->
                             <div class="row mb-3">
                                 <div class="col-12">
-                                    <h4>Test Location</h4>
+                                    <h4>Test Location and Date</h4>
                                 </div>
                                 <div class="col-12">
                                     <div class="mb-3">
@@ -131,6 +131,18 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                         <input type="hidden" id="testCity">
                                         <input type="hidden" id="testState" value="TX">
                                         <input type="hidden" id="testZip">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="testDate" class="form-label">Test Date</label>
+                                        <div class="input-group">
+                                            <input type="date" class="form-control" id="testDate" required>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-outline-secondary date-btn" data-date="yesterday">Yesterday</button>
+                                                <button type="button" class="btn btn-outline-secondary date-btn" data-date="today">Today</button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -192,7 +204,7 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                             </div>
                                             <div class="mb-3">
                                                 <label for="pinpointFindings" class="form-label">Pinpoint Findings</label>
-                                                <textarea class="form-control" id="pinpointFindings" rows="3" placeholder="Describe the findings from the pinpoint test"></textarea>
+                                                <textarea class="form-control" id="pinpointFindings" rows="3" placeholder="Describe the findings from the pinpoint test. EXAMPLE: Testing revealed a major separation/break at the second wye fitting approximately 25–26 ft from the exterior clean-out. The break is large enough that base material is actively entering the pipe, and the system will not hold pressure past this point. The break is located beneath the slab near the laundry room doorway. Due to depth and location, repair will require interior access and tunneling approximately 25 ft from the garage side clean-out."></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -227,23 +239,10 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                             </div>
 
                             <!-- Test Parameters -->
-                            <div class="row mb-3">
+                            <div class="row mb-3" style="display: none;">
                                 <div class="col-12">
                                     <h4>Test Parameters</h4>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="testDate" class="form-label">Test Date</label>
-                                        <div class="input-group">
-                                            <input type="date" class="form-control" id="testDate" required>
-                                            <div class="btn-group" role="group">
-                                                <button type="button" class="btn btn-outline-secondary date-btn" data-date="yesterday">Yesterday</button>
-                                                <button type="button" class="btn btn-outline-secondary date-btn" data-date="today">Today</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
                                 <div class="col-md-6" id="testDurationField">
                                     <div class="mb-3">
                                         <label for="testDuration" class="form-label">Test Duration (minutes)</label>
@@ -255,12 +254,6 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                                 <button type="button" class="btn btn-outline-secondary duration-btn active" data-duration="60">60</button>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label for="testDescription" class="form-label">Test Description</label>
-                                        <textarea class="form-control" id="testDescription" rows="3" placeholder="Describe the scope of the test (e.g., 'Sewer line from house to city main')"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -289,7 +282,7 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="previewModalLabel">Click Plumbing Hydrostatic Test Report Preview</h5>
+                    <h5 class="modal-title" id="previewModalLabel">Click Plumbing Test Report Preview</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -438,17 +431,21 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
                         <span id="reportAddress"></span><br>
                         <span id="reportCityStateZip"></span>
                     </div>
+                    <div class="report-field" id="reportDateBelowLocation" style="display: none;">
+                        <label>Date:</label>
+                        <span id="reportTestDateBelowLocation"></span>
+                    </div>
                 </div>
             </div>
             
             <div class="report-section">
                 <h3>Test Details</h3>
                 <div class="report-grid two-columns">
-                    <div class="report-field">
+                    <div class="report-field" id="reportTestTypeField">
                         <label>Test Type:</label>
                         <span id="reportTestType"></span>
                     </div>
-                    <div class="report-field">
+                    <div class="report-field" id="reportTestDateField">
                         <label>Date:</label>
                         <span id="reportTestDate"></span>
                     </div>
@@ -462,7 +459,6 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
                     </div>
                 </div>
                 <div class="report-field full-width" id="pinpointTestDetails" style="display: none;">
-                    <h4 style="color: #0d6efd; margin-top: 15px; margin-bottom: 10px;">Pinpoint Test Information</h4>
                     <div class="report-field">
                         <label>Pinpoint Location:</label>
                         <span id="reportPinpointLocation"></span>
@@ -479,10 +475,6 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
                 <div class="report-field" id="reportTestMethodField">
                     <label>Test Method:</label>
                     <span id="reportTestMethod"></span>
-                </div>
-                <div class="report-field" id="reportDescriptionField">
-                    <label>Description:</label>
-                    <p id="reportDescription"></p>
                 </div>
             </div>
             

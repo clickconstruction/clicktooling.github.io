@@ -114,8 +114,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (urlParams.has('pinpointLocation')) {
                     document.getElementById('pinpointLocation').value = urlParams.get('pinpointLocation') || '';
                 }
+                const pinpointMethodField = document.getElementById('pinpointMethod');
                 if (urlParams.has('pinpointMethod')) {
-                    document.getElementById('pinpointMethod').value = urlParams.get('pinpointMethod') || '';
+                    pinpointMethodField.value = urlParams.get('pinpointMethod') || '';
+                } else if (pinpointMethodField && !pinpointMethodField.value) {
+                    // Pre-fill with default if not provided in URL and field is empty
+                    pinpointMethodField.value = 'Camera / test ball / hydrostatic isolation testing';
                 }
                 if (urlParams.has('pinpointFindings')) {
                     document.getElementById('pinpointFindings').value = urlParams.get('pinpointFindings') || '';
@@ -400,7 +404,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const supplySewer = document.getElementById('supplySewer').value;
         const testDate = document.getElementById('testDate').value;
         const testDuration = document.getElementById('testDuration').value;
-        const testDescription = document.getElementById('testDescription').value;
         const systemTested = document.getElementById('systemTested').value;
         const testMethod = document.getElementById('testMethod').value;
         
@@ -445,9 +448,14 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Format test type for title
         const testTypeDisplay = formatTestType(testType, supplySewer);
-        const titleText = testTypeDisplay 
-            ? `${testTypeDisplay} Hydrostatic Test` 
-            : 'Hydrostatic Test';
+        let titleText;
+        if (testType === 'pinpoint-test') {
+            titleText = 'Pinpoint Test';
+        } else {
+            titleText = testTypeDisplay 
+                ? `${testTypeDisplay} Hydrostatic Test` 
+                : 'Hydrostatic Test';
+        }
         
         // Update report title
         template.querySelector('#reportTestTypeTitle').textContent = titleText;
@@ -493,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
         template.querySelector('#reportSystemTested').textContent = systemTestedDisplay;
         
         template.querySelector('#reportTestMethod').textContent = testMethod;
-        template.querySelector('#reportDescription').textContent = testDescription;
         
         // Handle pinpoint test details
         const pinpointDetails = template.querySelector('#pinpointTestDetails');
@@ -501,24 +508,38 @@ document.addEventListener('DOMContentLoaded', function() {
         const pinpointTestResults = template.querySelector('#reportPinpointResultsSection');
         const systemTestedField = template.querySelector('#reportSystemTestedField');
         const testMethodField = template.querySelector('#reportTestMethodField');
-        const descriptionField = template.querySelector('#reportDescriptionField');
         const testDurationField = template.querySelector('#reportTestDurationField');
+        const testTypeField = template.querySelector('#reportTestTypeField');
+        const testDateField = template.querySelector('#reportTestDateField');
+        const dateBelowLocation = template.querySelector('#reportDateBelowLocation');
         
         if (testType === 'pinpoint-test') {
             // Hide standard test results section
             if (standardTestResults) {
                 standardTestResults.style.display = 'none';
             }
-            // Show pinpoint test results section (replaces Test Results)
+            // Hide pinpoint test results section (we show it in Test Details instead)
             if (pinpointTestResults) {
-                pinpointTestResults.style.display = 'block';
-                template.querySelector('#reportPinpointResultsLocation').textContent = pinpointLocation || 'N/A';
-                template.querySelector('#reportPinpointResultsMethod').textContent = pinpointMethod || 'N/A';
-                template.querySelector('#reportPinpointResultsFindings').textContent = pinpointFindings || 'N/A';
+                pinpointTestResults.style.display = 'none';
             }
-            // Hide pinpoint details in Test Details section
+            // Show pinpoint details in Test Details section
             if (pinpointDetails) {
-                pinpointDetails.style.display = 'none';
+                pinpointDetails.style.display = 'block';
+                template.querySelector('#reportPinpointLocation').textContent = pinpointLocation || 'N/A';
+                template.querySelector('#reportPinpointMethod').textContent = pinpointMethod || 'N/A';
+                template.querySelector('#reportPinpointFindings').textContent = pinpointFindings || 'N/A';
+            }
+            // Hide Test Type field (it's in the title)
+            if (testTypeField) {
+                testTypeField.style.display = 'none';
+            }
+            // Hide Date field in Test Details, show it below Test Location
+            if (testDateField) {
+                testDateField.style.display = 'none';
+            }
+            if (dateBelowLocation) {
+                dateBelowLocation.style.display = 'block';
+                template.querySelector('#reportTestDateBelowLocation').textContent = formatDate(testDate);
             }
             // Hide System Tested, Test Method, Description, and Test Duration for pinpoint tests
             if (systemTestedField) {
@@ -526,9 +547,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (testMethodField) {
                 testMethodField.style.display = 'none';
-            }
-            if (descriptionField) {
-                descriptionField.style.display = 'none';
             }
             if (testDurationField) {
                 testDurationField.style.display = 'none';
@@ -546,15 +564,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (pinpointDetails) {
                 pinpointDetails.style.display = 'none';
             }
+            // Show Test Type field for non-pinpoint tests
+            if (testTypeField) {
+                testTypeField.style.display = 'block';
+            }
+            // Show Date field in Test Details, hide it below Test Location
+            if (testDateField) {
+                testDateField.style.display = 'block';
+            }
+            if (dateBelowLocation) {
+                dateBelowLocation.style.display = 'none';
+            }
             // Show System Tested, Test Method, Description, and Test Duration for non-pinpoint tests
             if (systemTestedField) {
                 systemTestedField.style.display = 'block';
             }
             if (testMethodField) {
                 testMethodField.style.display = 'block';
-            }
-            if (descriptionField) {
-                descriptionField.style.display = 'block';
             }
             if (testDurationField) {
                 testDurationField.style.display = 'block';
@@ -564,7 +590,12 @@ document.addEventListener('DOMContentLoaded', function() {
             template.querySelector('#reportNotes').textContent = testNotes;
         }
         
-        template.querySelector('#reportCertification').textContent = certification;
+        // Set certification text based on test type
+        let certificationText = certification;
+        if (testType === 'pinpoint-test') {
+            certificationText = "I hereby certify that the Pinpoint Test was performed according to industry standards and local code requirements. Click Plumbing's scope is limited to the plumbing system. Any opinions regarding the effect of leaks on foundation performance or structural settlement are deferred to the contracting group. All reports only represent measurements taken at this time.\n\nMalachi Whites (#RMP41130)\nClick Plumbing\nOffice: (801) 252-5155\nMail: 5501 Balcones Dr A141 Austin TX 78731\nTSBPE: 929 East 41st St Austin TX 78751";
+        }
+        template.querySelector('#reportCertification').textContent = certificationText;
         
         // Clear previous preview and add the new one
         const previewContainer = document.getElementById('reportPreview');
@@ -758,6 +789,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (testResultsSection) {
                 testResultsSection.style.display = 'block';
             }
+            // Show test duration field on reset
+            const testDurationField = document.getElementById('testDurationField');
+            if (testDurationField) {
+                testDurationField.style.display = 'block';
+            }
             // Remove active class from all test type buttons
             document.querySelectorAll('.test-type-btn').forEach(btn => btn.classList.remove('active'));
             // Clear test type value
@@ -865,6 +901,11 @@ document.addEventListener('DOMContentLoaded', function() {
             if (testType === 'pinpoint-test') {
                 pinpointContent.style.display = 'block';
                 supplySewerContent.style.display = 'none';
+                // Pre-fill pinpoint test method
+                const pinpointMethodField = document.getElementById('pinpointMethod');
+                if (pinpointMethodField) {
+                    pinpointMethodField.value = 'Camera / test ball / hydrostatic isolation testing';
+                }
                 // Hide Test Results section (PASS/FAIL) for pinpoint tests
                 if (testResultsSection) {
                     testResultsSection.style.display = 'none';
@@ -1169,7 +1210,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const testType = document.getElementById('testType').value;
         const testDate = document.getElementById('testDate').value;
         const testDuration = document.getElementById('testDuration').value;
-        const testDescription = document.getElementById('testDescription').value;
         const systemTested = document.getElementById('systemTested').value;
         
         // Generate invoice ID and date
@@ -1259,9 +1299,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         let serviceDesc = `${testTypePrefix}Hydrostatic Test`;
-        if (testDescription) {
-            serviceDesc += ` - ${testDescription}`;
-        }
         
         // Add location to description
         if (addressLines && addressLines.length > 0) {
