@@ -91,6 +91,16 @@ document.addEventListener('DOMContentLoaded', function() {
                         testResultsSection.style.display = 'none';
                     }
                     
+                    // Hide test duration field for pinpoint tests
+                    const testDurationField = document.getElementById('testDurationField');
+                    const testDurationInput = document.getElementById('testDuration');
+                    if (testDurationField) {
+                        testDurationField.style.display = 'none';
+                    }
+                    if (testDurationInput) {
+                        testDurationInput.removeAttribute('required');
+                    }
+                    
                     // Clear supply/sewer selection
                     document.getElementById('supplySewer').value = '';
                     document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
@@ -489,6 +499,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const pinpointDetails = template.querySelector('#pinpointTestDetails');
         const standardTestResults = template.querySelector('#reportStandardTestResultsSection');
         const pinpointTestResults = template.querySelector('#reportPinpointResultsSection');
+        const systemTestedField = template.querySelector('#reportSystemTestedField');
+        const testMethodField = template.querySelector('#reportTestMethodField');
+        const descriptionField = template.querySelector('#reportDescriptionField');
+        const testDurationField = template.querySelector('#reportTestDurationField');
         
         if (testType === 'pinpoint-test') {
             // Hide standard test results section
@@ -506,6 +520,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (pinpointDetails) {
                 pinpointDetails.style.display = 'none';
             }
+            // Hide System Tested, Test Method, Description, and Test Duration for pinpoint tests
+            if (systemTestedField) {
+                systemTestedField.style.display = 'none';
+            }
+            if (testMethodField) {
+                testMethodField.style.display = 'none';
+            }
+            if (descriptionField) {
+                descriptionField.style.display = 'none';
+            }
+            if (testDurationField) {
+                testDurationField.style.display = 'none';
+            }
         } else {
             // Show standard test results section
             if (standardTestResults) {
@@ -518,6 +545,19 @@ document.addEventListener('DOMContentLoaded', function() {
             // Hide pinpoint details in Test Details section
             if (pinpointDetails) {
                 pinpointDetails.style.display = 'none';
+            }
+            // Show System Tested, Test Method, Description, and Test Duration for non-pinpoint tests
+            if (systemTestedField) {
+                systemTestedField.style.display = 'block';
+            }
+            if (testMethodField) {
+                testMethodField.style.display = 'block';
+            }
+            if (descriptionField) {
+                descriptionField.style.display = 'block';
+            }
+            if (testDurationField) {
+                testDurationField.style.display = 'block';
             }
             template.querySelector('#reportResult').innerHTML = resultDisplay;
             template.querySelector('#reportConclusion').textContent = conclusion;
@@ -829,6 +869,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (testResultsSection) {
                     testResultsSection.style.display = 'none';
                 }
+                // Hide test duration field for pinpoint tests
+                const testDurationField = document.getElementById('testDurationField');
+                const testDurationInput = document.getElementById('testDuration');
+                if (testDurationField) {
+                    testDurationField.style.display = 'none';
+                }
+                if (testDurationInput) {
+                    testDurationInput.removeAttribute('required');
+                }
                 // Clear supply/sewer selection
                 document.getElementById('supplySewer').value = '';
                 document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
@@ -841,6 +890,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show Test Results section for non-pinpoint tests
                 if (testResultsSection) {
                     testResultsSection.style.display = 'block';
+                }
+                // Show test duration field for non-pinpoint tests
+                const testDurationField = document.getElementById('testDurationField');
+                const testDurationInput = document.getElementById('testDuration');
+                if (testDurationField) {
+                    testDurationField.style.display = 'block';
+                }
+                if (testDurationInput) {
+                    testDurationInput.setAttribute('required', 'required');
                 }
                 // Clear pinpoint fields when hidden
                 document.getElementById('pinpointLocation').value = '';

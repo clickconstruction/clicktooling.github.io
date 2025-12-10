@@ -244,7 +244,7 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                     </div>
                                 </div>
 
-                                <div class="col-md-6">
+                                <div class="col-md-6" id="testDurationField">
                                     <div class="mb-3">
                                         <label for="testDuration" class="form-label">Test Duration (minutes)</label>
                                         <div class="input-group">
@@ -339,7 +339,7 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
             <div class="invoice-addresses">
                 <div class="from-address">
                     <h4>From:</h4>
-                    <p><strong>Click Plumbing LLC</strong></p>
+                    <p><strong>CLICK PLUMBING LLC</strong></p>
                     <p>5501 BALCONES DR STE A 141</p>
                     <p>AUSTIN TX 78731</p>
                 </div>
@@ -384,7 +384,7 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                 <p style="white-space: pre-line; margin-top: 15px;">I hereby certify that the Hydrostatic Test was performed according to industry standards and local code requirements. All reports only represent measurements taken at this time.
 
 Malachi Whites (#RMP41130)
-Click Plumbing
+CLICK PLUMBING LLC
 Office: (801) 252-5155
 TSBPE: 929 East 41st St Austin TX 78751</p>
             </div>
@@ -452,11 +452,11 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
                         <label>Date:</label>
                         <span id="reportTestDate"></span>
                     </div>
-                    <div class="report-field">
+                    <div class="report-field" id="reportSystemTestedField">
                         <label>System Tested:</label>
                         <span id="reportSystemTested"></span>
                     </div>
-                    <div class="report-field">
+                    <div class="report-field" id="reportTestDurationField">
                         <label>Test Duration (minutes):</label>
                         <span id="reportTestDuration"></span>
                     </div>
@@ -476,11 +476,11 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
                         <p id="reportPinpointFindings"></p>
                     </div>
                 </div>
-                <div class="report-field">
+                <div class="report-field" id="reportTestMethodField">
                     <label>Test Method:</label>
                     <span id="reportTestMethod"></span>
                 </div>
-                <div class="report-field">
+                <div class="report-field" id="reportDescriptionField">
                     <label>Description:</label>
                     <p id="reportDescription"></p>
                 </div>
@@ -506,7 +506,6 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
             <div class="report-section" id="reportPinpointResultsSection" style="display: none;">
                 <h3>Test Results</h3>
                 <div class="report-field full-width">
-                    <h4 style="color: #0d6efd; margin-top: 15px; margin-bottom: 10px;">Pinpoint Test Information</h4>
                     <div class="report-field">
                         <label>Pinpoint Location:</label>
                         <span id="reportPinpointResultsLocation"></span>
