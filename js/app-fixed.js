@@ -62,6 +62,56 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('customerCompany').value = urlParams.get('company') || '';
             document.getElementById('testLocation').value = urlParams.get('location') || '';
             
+            // Handle pinpoint test fields if present
+            if (urlParams.has('testType') && urlParams.get('testType') === 'pinpoint-test') {
+                // Set the test type value first
+                const testTypeInput = document.getElementById('testType');
+                testTypeInput.value = 'pinpoint-test';
+                
+                // Get references to elements
+                const pinpointButton = document.querySelector('.test-type-btn[data-test-type="pinpoint-test"]');
+                const pinpointContent = document.getElementById('pinpointTestContent');
+                const supplySewerContent = document.getElementById('supplySewerContent');
+                const testResultsSection = document.getElementById('testResultsSection');
+                
+                if (pinpointButton) {
+                    // Remove active from all test type buttons
+                    document.querySelectorAll('.test-type-btn').forEach(btn => btn.classList.remove('active'));
+                    // Add active class to pinpoint button
+                    pinpointButton.classList.add('active');
+                    
+                    // Explicitly show/hide sections (same logic as button click handler)
+                    if (pinpointContent) {
+                        pinpointContent.style.display = 'block';
+                    }
+                    if (supplySewerContent) {
+                        supplySewerContent.style.display = 'none';
+                    }
+                    if (testResultsSection) {
+                        testResultsSection.style.display = 'none';
+                    }
+                    
+                    // Clear supply/sewer selection
+                    document.getElementById('supplySewer').value = '';
+                    document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                        btn.classList.remove('btn-warning');
+                        btn.classList.add('btn-outline-warning');
+                    });
+                }
+                
+                // Fill pinpoint fields
+                if (urlParams.has('pinpointLocation')) {
+                    document.getElementById('pinpointLocation').value = urlParams.get('pinpointLocation') || '';
+                }
+                if (urlParams.has('pinpointMethod')) {
+                    document.getElementById('pinpointMethod').value = urlParams.get('pinpointMethod') || '';
+                }
+                if (urlParams.has('pinpointFindings')) {
+                    document.getElementById('pinpointFindings').value = urlParams.get('pinpointFindings') || '';
+                }
+            }
+            
             // Show a notification that form was pre-filled
             const notification = document.createElement('div');
             notification.className = 'alert alert-info alert-dismissible fade show mt-4';
@@ -966,6 +1016,71 @@ document.addEventListener('DOMContentLoaded', function() {
     // Share customer info button
     document.getElementById('shareCustomerInfo').addEventListener('click', function() {
         generateShareableURL();
+    });
+    
+    // Function to generate shareable URL with pinpoint test information
+    function generatePinpointShareableURL() {
+        const customerName = document.getElementById('customerName').value;
+        const customerEmail = document.getElementById('customerEmail').value;
+        const customerPhone = document.getElementById('customerPhone').value;
+        const customerCompany = document.getElementById('customerCompany').value;
+        const testLocation = document.getElementById('testLocation').value;
+        const testType = document.getElementById('testType').value;
+        const pinpointLocation = document.getElementById('pinpointLocation').value;
+        const pinpointMethod = document.getElementById('pinpointMethod').value;
+        const pinpointFindings = document.getElementById('pinpointFindings').value;
+        
+        // Only generate URL if we have at least customer name, location, and test type is pinpoint
+        if (!customerName || !testLocation) {
+            alert('Please fill in at least Customer Name and Test Location before sharing.');
+            return;
+        }
+        
+        if (testType !== 'pinpoint-test') {
+            alert('Please select Pinpoint Test before sharing pinpoint information.');
+            return;
+        }
+        
+        // Create URL parameters
+        const params = new URLSearchParams();
+        params.set('name', customerName);
+        if (customerEmail) params.set('email', customerEmail);
+        if (customerPhone) params.set('phone', customerPhone);
+        if (customerCompany) params.set('company', customerCompany);
+        params.set('location', testLocation);
+        params.set('testType', 'pinpoint-test');
+        if (pinpointLocation) params.set('pinpointLocation', pinpointLocation);
+        if (pinpointMethod) params.set('pinpointMethod', pinpointMethod);
+        if (pinpointFindings) params.set('pinpointFindings', pinpointFindings);
+        
+        // Get current URL without query parameters
+        const baseURL = window.location.origin + window.location.pathname;
+        const shareableURL = baseURL + '?' + params.toString();
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(shareableURL).then(function() {
+            // Show success feedback
+            const shareButton = document.getElementById('sharePinpointInfo');
+            const originalText = shareButton.innerHTML;
+            shareButton.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+            shareButton.classList.remove('btn-outline-light');
+            shareButton.classList.add('btn-success');
+            
+            setTimeout(function() {
+                shareButton.innerHTML = originalText;
+                shareButton.classList.remove('btn-success');
+                shareButton.classList.add('btn-outline-light');
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Failed to copy URL:', err);
+            // Fallback: show URL in a prompt
+            prompt('Copy this URL to share:', shareableURL);
+        });
+    }
+    
+    // Share pinpoint info button
+    document.getElementById('sharePinpointInfo').addEventListener('click', function() {
+        generatePinpointShareableURL();
     });
     
     // Generate invoice button
