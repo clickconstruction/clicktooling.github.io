@@ -214,6 +214,126 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Quick Fill functionality
+    const quickFillInput = document.getElementById('quickFill');
+    if (quickFillInput) {
+        quickFillInput.addEventListener('paste', function(e) {
+            // Allow the paste to complete, then process
+            setTimeout(() => {
+                processQuickFill(this.value);
+            }, 10);
+        });
+        
+        quickFillInput.addEventListener('blur', function() {
+            if (this.value.trim()) {
+                processQuickFill(this.value);
+            }
+        });
+        
+        // Also handle Enter key
+        quickFillInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                processQuickFill(this.value);
+            }
+        });
+    }
+    
+    function processQuickFill(inputText) {
+        if (!inputText || !inputText.trim()) return;
+        
+        // Split by tabs first, then by multiple spaces
+        let parts = inputText.split(/\t+/);
+        if (parts.length === 1) {
+            // Try splitting by multiple spaces (2 or more)
+            parts = inputText.split(/\s{2,}/);
+        }
+        if (parts.length === 1) {
+            // Try splitting by single space as last resort
+            parts = inputText.split(/\s+/);
+        }
+        
+        // Clean up parts
+        parts = parts.map(p => p.trim()).filter(p => p.length > 0);
+        
+        if (parts.length === 0) return;
+        
+        let name = '';
+        let address = '';
+        let email = '';
+        let phone = '';
+        
+        // Identify email (contains @)
+        const emailIndex = parts.findIndex(p => p.includes('@'));
+        if (emailIndex !== -1) {
+            email = parts[emailIndex];
+            parts.splice(emailIndex, 1);
+        }
+        
+        // Identify phone (matches phone patterns: XXX-XXX-XXXX, (XXX) XXX-XXXX, XXX.XXX.XXXX, etc.)
+        const phonePattern = /[\d\-\(\)\.\s]{10,}/;
+        const phoneIndex = parts.findIndex(p => phonePattern.test(p) && p.replace(/\D/g, '').length >= 10);
+        if (phoneIndex !== -1) {
+            phone = parts[phoneIndex];
+            parts.splice(phoneIndex, 1);
+        }
+        
+        // Identify address (usually contains street indicators or is the longest remaining part)
+        const addressIndicators = ['Dr', 'St', 'Ave', 'Rd', 'Blvd', 'Ln', 'Ct', 'Way', 'Pl', 'Cir', 'Pkwy'];
+        const addressIndex = parts.findIndex(p => {
+            const upperP = p.toUpperCase();
+            return addressIndicators.some(indicator => upperP.includes(indicator.toUpperCase())) ||
+                   (/\d/.test(p) && p.length > 15); // Has numbers and is long
+        });
+        
+        if (addressIndex !== -1) {
+            address = parts[addressIndex];
+            parts.splice(addressIndex, 1);
+        } else if (parts.length > 1) {
+            // If no clear address indicator, assume the longest part is the address
+            const longestIndex = parts.reduce((maxIdx, part, idx, arr) => 
+                part.length > arr[maxIdx].length ? idx : maxIdx, 0
+            );
+            address = parts[longestIndex];
+            parts.splice(longestIndex, 1);
+        }
+        
+        // Remaining parts are the name
+        name = parts.join(' ').trim();
+        
+        // Fill in the fields
+        let fieldsFilled = 0;
+        if (name) {
+            document.getElementById('customerName').value = name;
+            fieldsFilled++;
+        }
+        if (address) {
+            document.getElementById('testLocation').value = address;
+            fieldsFilled++;
+        }
+        if (email) {
+            document.getElementById('customerEmail').value = email;
+            fieldsFilled++;
+        }
+        if (phone) {
+            document.getElementById('customerPhone').value = phone;
+            fieldsFilled++;
+        }
+        
+        // Show brief visual feedback
+        if (fieldsFilled > 0 && quickFillInput) {
+            quickFillInput.classList.add('border-success');
+            setTimeout(() => {
+                quickFillInput.classList.remove('border-success');
+            }, 1000);
+        }
+        
+        // Clear the quick fill input after processing
+        if (quickFillInput) {
+            quickFillInput.value = '';
+        }
+    }
+    
     // Save customer data when form is submitted
     function saveCustomerData() {
         const customerName = document.getElementById('customerName').value;
