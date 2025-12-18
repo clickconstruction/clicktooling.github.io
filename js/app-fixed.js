@@ -713,7 +713,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set certification text based on test type
         let certificationText = certification;
         if (testType === 'pinpoint-test') {
-            certificationText = "I hereby certify that the Pinpoint Test was performed according to industry standards and local code requirements. Click Plumbing's scope is limited to the plumbing system. Any opinions regarding the effect of leaks on foundation performance or structural settlement are deferred to the contracting group. All reports only represent measurements taken at this time.\n\nMalachi Whites (#RMP41130)\nClick Plumbing\nOffice: (801) 252-5155\nMail: 5501 Balcones Dr A141 Austin TX 78731\nTSBPE: 929 East 41st St Austin TX 78751";
+            certificationText = "I hereby certify that the Pinpoint Test was performed according to industry standards and local code requirements. Click Plumbing's scope is limited to the plumbing system. Any opinions regarding the effect of leaks on foundation performance or structural settlement are deferred to the contracting group. All reports only represent measurements taken at this time.\n\nMalachi Whites (#RMP41130)\nClick Plumbing\nOffice: (512) 360-0599\nMail: 5501 Balcones Dr A141 Austin TX 78731\nTSBPE: 929 East 41st St Austin TX 78751";
         }
         template.querySelector('#reportCertification').textContent = certificationText;
         
