@@ -165,6 +165,9 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                         <button type="button" class="btn btn-outline-primary btn-lg test-type-btn flex-fill" data-test-type="pinpoint-test">
                                             <i class="fas fa-crosshairs me-2"></i>Pinpoint Test
                                         </button>
+                                        <button type="button" class="btn btn-outline-primary btn-lg test-type-btn flex-fill" data-test-type="gas-test">
+                                            <i class="fas fa-fire me-2"></i>Gas Test
+                                        </button>
                                     </div>
                                     <input type="hidden" id="testType" required>
                                 </div>
@@ -208,6 +211,69 @@ TSBPE: 929 East 41st St Austin TX 78751</textarea>
                                             <div class="mb-3">
                                                 <label for="pinpointFindings" class="form-label">Pinpoint Findings</label>
                                                 <textarea class="form-control" id="pinpointFindings" rows="3" placeholder="Describe the findings from the pinpoint test. EXAMPLE: Testing revealed a major separation/break at the second wye fitting approximately 25–26 ft from the exterior clean-out. The break is large enough that base material is actively entering the pipe, and the system will not hold pressure past this point. The break is located beneath the slab near the laundry room doorway. Due to depth and location, repair will require interior access and tunneling approximately 25 ft from the garage side clean-out."></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Gas Test Content (Conditional) -->
+                            <div class="row mb-3" id="gasTestContent" style="display: none;">
+                                <div class="col-12">
+                                    <div class="card border-success">
+                                        <div class="card-header bg-success text-white">
+                                            <h5 class="mb-0 gas-test-header-title">Gas Test Information</h5>
+                                        </div>
+                                        <div class="card-body">
+                                            <h6 class="mb-2">Section 1: House Pressure</h6>
+                                            <p class="text-muted small mb-2">Enter a value in one field; the others will auto-compute. Positive numbers only.</p>
+                                            <div class="row g-2 mb-3">
+                                                <div class="col-md-3">
+                                                    <label for="gasTestPressurePsi" class="form-label small">PSI</label>
+                                                    <input type="number" class="form-control gas-test-pressure-field" id="gasTestPressurePsi" placeholder="0" min="0" step="any" inputmode="decimal">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label for="gasTestPressureInWC" class="form-label small">Inches WC</label>
+                                                    <input type="number" class="form-control gas-test-pressure-field" id="gasTestPressureInWC" placeholder="0" min="0" step="any" inputmode="decimal">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label for="gasTestPressureOz" class="form-label small">oz/in²</label>
+                                                    <input type="number" class="form-control gas-test-pressure-field" id="gasTestPressureOz" placeholder="0" min="0" step="any" inputmode="decimal">
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label for="gasTestPressureMmWC" class="form-label small">mm WC</label>
+                                                    <input type="number" class="form-control gas-test-pressure-field" id="gasTestPressureMmWC" placeholder="0" min="0" step="any" inputmode="decimal">
+                                                </div>
+                                                <div class="col-12 mt-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="gasTestPressureReset">Reset Pressure</button>
+                                                </div>
+                                            </div>
+                                            <hr>
+                                            <h6 class="mb-2">Section 2: House Utilities</h6>
+                                            <p class="text-muted small mb-2">Add gas fixtures and their BTU/hr demand.</p>
+                                            <div class="mb-2">
+                                                <div class="d-flex flex-wrap gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary gas-test-fixture-quick-btn" data-fixture="Furnace">Furnace</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary gas-test-fixture-quick-btn" data-fixture="Water Heater">Water Heater</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary gas-test-fixture-quick-btn" data-fixture="Gas Range">Gas Range</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary gas-test-fixture-quick-btn" data-fixture="Dryer">Dryer</button>
+                                                    <button type="button" class="btn btn-sm btn-outline-secondary gas-test-fixture-quick-btn" data-fixture="Fireplace">Fireplace</button>
+                                                </div>
+                                            </div>
+                                            <datalist id="gasTestFixtureSuggestions">
+                                                <option value="Furnace">
+                                                <option value="Water Heater">
+                                                <option value="Dryer">
+                                                <option value="Range">
+                                                <option value="Fireplace">
+                                                <option value="Grill">
+                                                <option value="Pool Heater">
+                                                <option value="Other">
+                                            </datalist>
+                                            <div id="gasTestFixturesList"></div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary mb-2" id="gasTestAddFixture"><i class="fas fa-plus me-1"></i>Add Fixture</button>
+                                            <div class="mt-2">
+                                                <strong>Total: <span id="gasTestTotalBtu">0</span> BTU/hr</strong>
                                             </div>
                                         </div>
                                     </div>
@@ -473,6 +539,17 @@ TSBPE: 929 East 41st St Austin TX 78751</p>
                     <div class="report-field">
                         <label>Pinpoint Findings:</label>
                         <p id="reportPinpointFindings"></p>
+                    </div>
+                </div>
+                <div class="report-field full-width" id="gasTestReportDetails" style="display: none;">
+                    <div class="report-field" id="reportGasPressureSection">
+                        <label>House Pressure:</label>
+                        <span id="reportGasPressure"></span>
+                    </div>
+                    <div class="report-field" id="reportGasFixturesSection">
+                        <label>House Utilities:</label>
+                        <div id="reportGasFixtures"></div>
+                        <div><strong>Total: <span id="reportGasTotalBtu"></span> BTU/hr</strong></div>
                     </div>
                 </div>
                 <div class="report-field" id="reportTestMethodField">

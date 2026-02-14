@@ -139,6 +139,42 @@ h1.report-title-custom {
     transform: translateY(-2px);
 }
 
+/* Gas Test Styles */
+.gas-test-pressure-locked {
+    background-color: #e9ecef !important;
+}
+
+.gas-test-reset-active {
+    background-color: #FF9800 !important;
+    border-color: #FF9800 !important;
+    color: white !important;
+}
+
+.gas-test-reset-active:hover {
+    background-color: #F57C00 !important;
+    border-color: #F57C00 !important;
+    color: white !important;
+}
+
+.gas-test-header-title {
+    color: #FF9800 !important;
+    font-weight: bold;
+}
+
+.gas-test-pressure-field {
+    min-width: 0;
+}
+
+.gas-test-fixture-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.gas-test-fixture-row .gas-test-fixture-name,
+.gas-test-fixture-row .gas-test-btu-input {
+    min-width: 0;
+}
+
 /* Signature Pad Styles */
 .signature-pad {
     width: 100%;

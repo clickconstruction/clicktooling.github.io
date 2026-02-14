@@ -491,7 +491,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const testTypeMap = {
             'pre-test': 'Pre-Test',
             'post-test': 'Post-Test',
-            'pinpoint-test': 'Pinpoint Test'
+            'pinpoint-test': 'Pinpoint Test',
+            'gas-test': 'Gas Test'
         };
         
         let baseType = testTypeMap[testTypeValue] || '';
@@ -571,6 +572,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let titleText;
         if (testType === 'pinpoint-test') {
             titleText = 'Pinpoint Test';
+        } else if (testType === 'gas-test') {
+            titleText = 'Gas Test';
         } else {
             titleText = testTypeDisplay 
                 ? `${testTypeDisplay} Hydrostatic Test` 
@@ -622,8 +625,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         template.querySelector('#reportTestMethod').textContent = testMethod;
         
-        // Handle pinpoint test details
+        // Handle pinpoint test details and gas test details
         const pinpointDetails = template.querySelector('#pinpointTestDetails');
+        const gasTestReportDetails = template.querySelector('#gasTestReportDetails');
         const standardTestResults = template.querySelector('#reportStandardTestResultsSection');
         const pinpointTestResults = template.querySelector('#reportPinpointResultsSection');
         const systemTestedField = template.querySelector('#reportSystemTestedField');
@@ -634,14 +638,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const dateBelowLocation = template.querySelector('#reportDateBelowLocation');
         
         if (testType === 'pinpoint-test') {
-            // Hide standard test results section
-            if (standardTestResults) {
-                standardTestResults.style.display = 'none';
-            }
-            // Hide pinpoint test results section (we show it in Test Details instead)
-            if (pinpointTestResults) {
-                pinpointTestResults.style.display = 'none';
-            }
+            if (standardTestResults) standardTestResults.style.display = 'none';
+            if (gasTestReportDetails) gasTestReportDetails.style.display = 'none';
+            if (pinpointTestResults) pinpointTestResults.style.display = 'none';
             // Show pinpoint details in Test Details section
             if (pinpointDetails) {
                 pinpointDetails.style.display = 'block';
@@ -671,11 +670,65 @@ document.addEventListener('DOMContentLoaded', function() {
             if (testDurationField) {
                 testDurationField.style.display = 'none';
             }
+        } else if (testType === 'gas-test') {
+            if (standardTestResults) standardTestResults.style.display = 'none';
+            if (pinpointTestResults) pinpointTestResults.style.display = 'none';
+            if (pinpointDetails) pinpointDetails.style.display = 'none';
+            if (gasTestReportDetails) {
+                gasTestReportDetails.style.display = 'block';
+                const psiVal = document.getElementById('gasTestPressurePsi')?.value;
+                const inWCVal = document.getElementById('gasTestPressureInWC')?.value;
+                const ozVal = document.getElementById('gasTestPressureOz')?.value;
+                const mmVal = document.getElementById('gasTestPressureMmWC')?.value;
+                const hasPressure = (psiVal && parseFloat(psiVal) > 0) || (inWCVal && parseFloat(inWCVal) > 0) ||
+                    (ozVal && parseFloat(ozVal) > 0) || (mmVal && parseFloat(mmVal) > 0);
+                const pressureSection = template.querySelector('#reportGasPressureSection');
+                if (hasPressure) {
+                    pressureSection.style.display = '';
+                    const pressureText = `PSI: ${psiVal || '—'}, in WC: ${inWCVal || '—'}, oz/in²: ${ozVal || '—'}, mm WC: ${mmVal || '—'}`;
+                    template.querySelector('#reportGasPressure').textContent = pressureText;
+                } else {
+                    pressureSection.style.display = 'none';
+                }
+                const container = document.getElementById('gasTestFixturesList');
+                const fixtureRows = container ? container.querySelectorAll('.gas-test-fixture-row') : [];
+                let fixtureHtml = '';
+                let totalBtu = 0;
+                fixtureRows.forEach(row => {
+                    const name = row.querySelector('.gas-test-fixture-name')?.value?.trim();
+                    const btu = parseInt(row.querySelector('.gas-test-btu-input')?.value, 10);
+                    if (name || (!isNaN(btu) && btu > 0)) {
+                        fixtureHtml += `<div>${name || '—'}: ${!isNaN(btu) && btu > 0 ? btu.toLocaleString() : '—'} BTU/hr</div>`;
+                        if (!isNaN(btu) && btu > 0) totalBtu += btu;
+                    }
+                });
+                const fixturesSection = template.querySelector('#reportGasFixturesSection');
+                if (fixtureHtml || totalBtu > 0) {
+                    fixturesSection.style.display = '';
+                    template.querySelector('#reportGasFixtures').innerHTML = fixtureHtml;
+                    template.querySelector('#reportGasTotalBtu').textContent = totalBtu.toLocaleString();
+                } else {
+                    fixturesSection.style.display = 'none';
+                }
+                if (!hasPressure && !fixtureHtml && totalBtu === 0) {
+                    gasTestReportDetails.style.display = 'none';
+                }
+            }
+            if (testTypeField) testTypeField.style.display = 'none';
+            if (testDateField) testDateField.style.display = 'none';
+            if (dateBelowLocation) {
+                dateBelowLocation.style.display = 'block';
+                template.querySelector('#reportTestDateBelowLocation').textContent = formatDate(testDate);
+            }
+            if (systemTestedField) systemTestedField.style.display = 'none';
+            if (testMethodField) testMethodField.style.display = 'none';
+            if (testDurationField) testDurationField.style.display = 'none';
         } else {
             // Show standard test results section
             if (standardTestResults) {
                 standardTestResults.style.display = 'block';
             }
+            if (gasTestReportDetails) gasTestReportDetails.style.display = 'none';
             // Hide pinpoint test results section
             if (pinpointTestResults) {
                 pinpointTestResults.style.display = 'none';
@@ -714,6 +767,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let certificationText = certification;
         if (testType === 'pinpoint-test') {
             certificationText = "I hereby certify that the Pinpoint Test was performed according to industry standards and local code requirements. Click Plumbing's scope is limited to the plumbing system. Any opinions regarding the effect of leaks on foundation performance or structural settlement are deferred to the contracting group. All reports only represent measurements taken at this time.\n\nMalachi Whites (#RMP41130)\nClick Plumbing\nOffice: (512) 360-0599\nMail: 5501 Balcones Dr A141 Austin TX 78731\nTSBPE: 929 East 41st St Austin TX 78751";
+        } else if (testType === 'gas-test') {
+            certificationText = "I hereby certify that the Gas Test was performed according to industry standards and local code requirements. All reports only represent measurements taken at this time.\n\nMalachi Whites (#RMP41130)\nClick Plumbing\nOffice: (512) 360-0599\nMail: 5501 Balcones Dr A141 Austin TX 78731\nTSBPE: 929 East 41st St Austin TX 78751";
         }
         template.querySelector('#reportCertification').textContent = certificationText;
         
@@ -772,16 +827,13 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
         
-        // Only require test result for non-pinpoint tests
-        if (testType !== 'pinpoint-test') {
+        // Only require test result for pre-test and post-test (not pinpoint or gas-test)
+        if (testType !== 'pinpoint-test' && testType !== 'gas-test') {
             const testResult = document.getElementById('testResult').value;
             if (!testResult) {
                 alert('Please select a test result (PASS or FAIL)');
-                // Focus on the first test result button
                 const firstResultButton = document.querySelector('.test-result-btn');
-                if (firstResultButton) {
-                    firstResultButton.focus();
-                }
+                if (firstResultButton) firstResultButton.focus();
                 return false;
             }
         }
@@ -902,6 +954,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('testDate').valueAsDate = new Date();
             // Hide pinpoint test content on reset
             document.getElementById('pinpointTestContent').style.display = 'none';
+            // Hide gas test content on reset
+            const gasTestContentEl = document.getElementById('gasTestContent');
+            if (gasTestContentEl) gasTestContentEl.style.display = 'none';
             // Hide supply/sewer content on reset
             document.getElementById('supplySewerContent').style.display = 'none';
             // Show Test Results section on reset
@@ -948,6 +1003,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             document.getElementById('testResult').value = '';
+            // Reset gas test fields (pressure + fixtures)
+            if (typeof resetGasTestFields === 'function') {
+                resetGasTestFields();
+            }
         }
     });
     
@@ -996,9 +1055,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle test type selection - show/hide pinpoint test content and supply/sewer buttons
+    // Handle test type selection - show/hide pinpoint test content, gas test content, and supply/sewer buttons
     const testTypeInput = document.getElementById('testType');
     const pinpointContent = document.getElementById('pinpointTestContent');
+    const gasTestContent = document.getElementById('gasTestContent');
     const supplySewerContent = document.getElementById('supplySewerContent');
     const testTypeButtons = document.querySelectorAll('.test-type-btn');
     
@@ -1015,31 +1075,35 @@ document.addEventListener('DOMContentLoaded', function() {
             const testType = this.getAttribute('data-test-type');
             testTypeInput.value = testType;
             
-            // Show/hide pinpoint content based on selection
+            // Show/hide content based on selection
             const testResultsSection = document.getElementById('testResultsSection');
+            const testDurationField = document.getElementById('testDurationField');
+            const testDurationInput = document.getElementById('testDuration');
             
             if (testType === 'pinpoint-test') {
                 pinpointContent.style.display = 'block';
+                if (gasTestContent) gasTestContent.style.display = 'none';
                 supplySewerContent.style.display = 'none';
-                // Pre-fill pinpoint test method
                 const pinpointMethodField = document.getElementById('pinpointMethod');
                 if (pinpointMethodField) {
                     pinpointMethodField.value = 'Camera / test ball / hydrostatic isolation testing';
                 }
-                // Hide Test Results section (PASS/FAIL) for pinpoint tests
-                if (testResultsSection) {
-                    testResultsSection.style.display = 'none';
-                }
-                // Hide test duration field for pinpoint tests
-                const testDurationField = document.getElementById('testDurationField');
-                const testDurationInput = document.getElementById('testDuration');
-                if (testDurationField) {
-                    testDurationField.style.display = 'none';
-                }
-                if (testDurationInput) {
-                    testDurationInput.removeAttribute('required');
-                }
-                // Clear supply/sewer selection
+                if (testResultsSection) testResultsSection.style.display = 'none';
+                if (testDurationField) testDurationField.style.display = 'none';
+                if (testDurationInput) testDurationInput.removeAttribute('required');
+                document.getElementById('supplySewer').value = '';
+                document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    btn.classList.remove('btn-warning');
+                    btn.classList.add('btn-outline-warning');
+                });
+            } else if (testType === 'gas-test') {
+                pinpointContent.style.display = 'none';
+                if (gasTestContent) gasTestContent.style.display = 'block';
+                supplySewerContent.style.display = 'none';
+                if (testResultsSection) testResultsSection.style.display = 'none';
+                if (testDurationField) testDurationField.style.display = 'none';
+                if (testDurationInput) testDurationInput.removeAttribute('required');
                 document.getElementById('supplySewer').value = '';
                 document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
                     btn.classList.remove('active');
@@ -1048,36 +1112,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             } else {
                 pinpointContent.style.display = 'none';
-                // Show Test Results section for non-pinpoint tests
-                if (testResultsSection) {
-                    testResultsSection.style.display = 'block';
-                }
-                // Show test duration field for non-pinpoint tests
-                const testDurationField = document.getElementById('testDurationField');
-                const testDurationInput = document.getElementById('testDuration');
-                if (testDurationField) {
-                    testDurationField.style.display = 'block';
-                }
-                if (testDurationInput) {
-                    testDurationInput.setAttribute('required', 'required');
-                }
-                // Clear pinpoint fields when hidden
+                if (gasTestContent) gasTestContent.style.display = 'none';
+                if (testResultsSection) testResultsSection.style.display = 'block';
+                if (testDurationField) testDurationField.style.display = 'block';
+                if (testDurationInput) testDurationInput.setAttribute('required', 'required');
                 document.getElementById('pinpointLocation').value = '';
                 document.getElementById('pinpointMethod').value = '';
                 document.getElementById('pinpointFindings').value = '';
                 
-                // Show supply/sewer buttons for pre-test and post-test
                 if (testType === 'pre-test' || testType === 'post-test') {
                     supplySewerContent.style.display = 'block';
-                    // Auto-select "Sewer" when Pre-Test or Post-Test is selected
                     const sewerButton = document.querySelector('.supply-sewer-btn[data-supply-sewer="sewer"]');
                     if (sewerButton && !supplySewerInput.value) {
-                        // Only auto-select if nothing is already selected
                         sewerButton.click();
                     }
                 } else {
                     supplySewerContent.style.display = 'none';
-                    // Clear supply/sewer selection
                     document.getElementById('supplySewer').value = '';
                     document.querySelectorAll('.supply-sewer-btn').forEach(btn => {
                         btn.classList.remove('active');
@@ -1112,6 +1162,200 @@ document.addEventListener('DOMContentLoaded', function() {
             supplySewerInput.value = supplySewer;
         });
     });
+    
+    // Gas Test: House Pressure conversion constants (PSI as base)
+    const PSI_TO_OZ = 16;
+    const PSI_TO_IN_WC = 27.679904842545;
+    const PSI_TO_MM_WC = 703.06957829636;
+    
+    function gasTestPressureFromPsi(psi) {
+        if (psi < 0 || isNaN(psi)) return null;
+        return {
+            psi: Math.round(psi),
+            inWC: Math.round(psi * PSI_TO_IN_WC),
+            oz: Math.round(psi * PSI_TO_OZ),
+            mmWC: Math.round(psi * PSI_TO_MM_WC)
+        };
+    }
+    
+    function setupGasTestPressureHandlers() {
+        const psiInput = document.getElementById('gasTestPressurePsi');
+        const inWCInput = document.getElementById('gasTestPressureInWC');
+        const ozInput = document.getElementById('gasTestPressureOz');
+        const mmWCInput = document.getElementById('gasTestPressureMmWC');
+        const resetBtn = document.getElementById('gasTestPressureReset');
+        const fields = [psiInput, inWCInput, ozInput, mmWCInput];
+        
+        function unlockAll() {
+            fields.forEach(f => {
+                if (f) {
+                    f.readOnly = false;
+                    f.removeAttribute('readonly');
+                    f.classList.remove('gas-test-pressure-locked');
+                }
+            });
+            if (resetBtn) resetBtn.classList.remove('gas-test-reset-active');
+        }
+        
+        function lockOthers(exceptField) {
+            fields.forEach(f => {
+                if (f && f !== exceptField) {
+                    f.readOnly = true;
+                    f.setAttribute('readonly', 'readonly');
+                    f.classList.add('gas-test-pressure-locked');
+                }
+            });
+            if (resetBtn) resetBtn.classList.add('gas-test-reset-active');
+        }
+        
+        function handlePressureInput(sourceField, valueToPsi) {
+            const val = parseFloat(sourceField.value);
+            if (isNaN(val) || val < 0) return;
+            const psi = valueToPsi(val);
+            if (psi < 0) return;
+            const converted = gasTestPressureFromPsi(psi);
+            if (!converted) return;
+            psiInput.value = converted.psi;
+            inWCInput.value = converted.inWC;
+            ozInput.value = converted.oz;
+            mmWCInput.value = converted.mmWC;
+            lockOthers(sourceField);
+        }
+        
+        if (psiInput) {
+            psiInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                if (isNaN(val) || val < 0) return unlockAll();
+                handlePressureInput(psiInput, v => v);
+            });
+        }
+        if (inWCInput) {
+            inWCInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                if (isNaN(val) || val < 0) return unlockAll();
+                handlePressureInput(inWCInput, v => v / PSI_TO_IN_WC);
+            });
+        }
+        if (ozInput) {
+            ozInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                if (isNaN(val) || val < 0) return unlockAll();
+                handlePressureInput(ozInput, v => v / PSI_TO_OZ);
+            });
+        }
+        if (mmWCInput) {
+            mmWCInput.addEventListener('input', function() {
+                const val = parseFloat(this.value);
+                if (isNaN(val) || val < 0) return unlockAll();
+                handlePressureInput(mmWCInput, v => v / PSI_TO_MM_WC);
+            });
+        }
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                unlockAll();
+                fields.forEach(f => { if (f) f.value = ''; });
+                if (psiInput) psiInput.focus();
+            });
+        }
+    }
+    
+    function updateGasTestTotalBtu() {
+        const container = document.getElementById('gasTestFixturesList');
+        const totalEl = document.getElementById('gasTestTotalBtu');
+        if (!container || !totalEl) return;
+        const btuInputs = container.querySelectorAll('.gas-test-btu-input');
+        let total = 0;
+        btuInputs.forEach(inp => {
+            const v = parseInt(inp.value, 10);
+            if (!isNaN(v) && v > 0) total += v;
+        });
+        totalEl.textContent = total.toLocaleString();
+    }
+    
+    function addGasTestFixture(name = '', btu = '') {
+        const container = document.getElementById('gasTestFixturesList');
+        if (!container) return;
+        const row = document.createElement('div');
+        row.className = 'gas-test-fixture-row row g-2 mb-2 align-items-end';
+        const safeName = String(name).replace(/"/g, '&quot;');
+        const safeBtu = String(btu).replace(/"/g, '&quot;');
+        row.innerHTML = `
+            <div class="col-md-6">
+                <label class="form-label small">Fixture Name</label>
+                <input type="text" class="form-control form-control-sm gas-test-fixture-name" list="gasTestFixtureSuggestions" placeholder="e.g. Furnace" value="${safeName}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small">BTU/hr</label>
+                <input type="number" class="form-control form-control-sm gas-test-btu-input" min="1" step="1" placeholder="e.g. 100000" value="${safeBtu}">
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-sm btn-outline-danger remove-gas-fixture" title="Remove fixture"><i class="fas fa-trash"></i></button>
+            </div>
+        `;
+        row.querySelector('.gas-test-btu-input').addEventListener('input', updateGasTestTotalBtu);
+        row.querySelector('.remove-gas-fixture').addEventListener('click', function() {
+            row.remove();
+            updateGasTestTotalBtu();
+        });
+        container.appendChild(row);
+        updateGasTestTotalBtu();
+    }
+    
+    function resetGasTestFields() {
+        const psiInput = document.getElementById('gasTestPressurePsi');
+        const inWCInput = document.getElementById('gasTestPressureInWC');
+        const ozInput = document.getElementById('gasTestPressureOz');
+        const mmWCInput = document.getElementById('gasTestPressureMmWC');
+        [psiInput, inWCInput, ozInput, mmWCInput].forEach(f => {
+            if (f) {
+                f.value = '';
+                f.readOnly = false;
+                f.removeAttribute('readonly');
+            }
+        });
+        const container = document.getElementById('gasTestFixturesList');
+        if (container) {
+            container.innerHTML = '';
+            addGasTestFixture();
+        }
+        updateGasTestTotalBtu();
+    }
+    
+    const gasTestAddBtn = document.getElementById('gasTestAddFixture');
+    if (gasTestAddBtn) {
+        gasTestAddBtn.addEventListener('click', function() {
+            addGasTestFixture();
+        });
+    }
+    
+    document.querySelectorAll('.gas-test-fixture-quick-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const fixtureName = this.getAttribute('data-fixture');
+            const container = document.getElementById('gasTestFixturesList');
+            if (!container) return;
+            const rows = container.querySelectorAll('.gas-test-fixture-row');
+            let targetRow = null;
+            for (const row of rows) {
+                const nameInput = row.querySelector('.gas-test-fixture-name');
+                if (nameInput && !nameInput.value.trim()) {
+                    targetRow = row;
+                    break;
+                }
+            }
+            if (!targetRow) {
+                addGasTestFixture(fixtureName, '');
+                const newRows = container.querySelectorAll('.gas-test-fixture-row');
+                targetRow = newRows[newRows.length - 1];
+            } else {
+                targetRow.querySelector('.gas-test-fixture-name').value = fixtureName;
+            }
+            const btuInput = targetRow.querySelector('.gas-test-btu-input');
+            if (btuInput) btuInput.focus();
+        });
+    });
+    
+    setupGasTestPressureHandlers();
+    addGasTestFixture();
     
     // Handle duration quick-fill buttons
     const durationButtons = document.querySelectorAll('.duration-btn');
@@ -1411,15 +1655,11 @@ document.addEventListener('DOMContentLoaded', function() {
             testTypePrefix = 'Postleveling ';
         } else if (testType === 'pinpoint-test') {
             testTypePrefix = 'Pinpoint ';
+        } else if (testType === 'gas-test') {
+            testTypePrefix = 'Gas ';
         }
         
-        // Add Supply/Sewer prefix if applicable
-        let fullTestType = formattedTestType;
-        if (formattedTestType) {
-            fullTestType = formattedTestType;
-        }
-        
-        let serviceDesc = `${testTypePrefix}Hydrostatic Test`;
+        let serviceDesc = testType === 'gas-test' ? 'Gas Test' : `${testTypePrefix}Hydrostatic Test`;
         
         // Add location to description
         if (addressLines && addressLines.length > 0) {
