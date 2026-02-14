@@ -1286,7 +1286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="col-md-4">
                 <label class="form-label small">BTU/hr</label>
-                <input type="number" class="form-control form-control-sm gas-test-btu-input" min="1" step="1" placeholder="e.g. 100000" value="${safeBtu}">
+                <input type="number" class="form-control form-control-sm gas-test-btu-input" min="1" step="5000" placeholder="e.g. 100000" value="${safeBtu}">
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-sm btn-outline-danger remove-gas-fixture" title="Remove fixture"><i class="fas fa-trash"></i></button>
