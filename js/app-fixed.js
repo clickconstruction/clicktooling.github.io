@@ -696,10 +696,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 let totalBtu = 0;
                 fixtureRows.forEach(row => {
                     const name = row.querySelector('.gas-test-fixture-name')?.value?.trim();
-                    const btu = parseInt(row.querySelector('.gas-test-btu-input')?.value, 10);
-                    if (name || (!isNaN(btu) && btu > 0)) {
-                        fixtureHtml += `<div>${name || '—'}: ${!isNaN(btu) && btu > 0 ? btu.toLocaleString() : '—'} BTU/hr</div>`;
-                        if (!isNaN(btu) && btu > 0) totalBtu += btu;
+                    const btu = parseBtuValue(row.querySelector('.gas-test-btu-input')?.value);
+                    if (name || btu > 0) {
+                        fixtureHtml += `<div>${name || '—'}: ${btu > 0 ? btu.toLocaleString() : '—'} BTU/hr</div>`;
+                        if (btu > 0) totalBtu += btu;
                     }
                 });
                 const fixturesSection = template.querySelector('#reportGasFixturesSection');
@@ -1259,6 +1259,17 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    function parseBtuValue(val) {
+        if (!val) return 0;
+        const cleaned = String(val).replace(/,/g, '');
+        return parseInt(cleaned, 10) || 0;
+    }
+    
+    function formatBtuValue(val) {
+        const num = parseBtuValue(val);
+        return num > 0 ? num.toLocaleString() : '';
+    }
+    
     function updateGasTestTotalBtu() {
         const container = document.getElementById('gasTestFixturesList');
         const totalEl = document.getElementById('gasTestTotalBtu');
@@ -1266,8 +1277,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const btuInputs = container.querySelectorAll('.gas-test-btu-input');
         let total = 0;
         btuInputs.forEach(inp => {
-            const v = parseInt(inp.value, 10);
-            if (!isNaN(v) && v > 0) total += v;
+            const v = parseBtuValue(inp.value);
+            if (v > 0) total += v;
         });
         totalEl.textContent = total.toLocaleString();
     }
@@ -1286,13 +1297,41 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="col-md-4">
                 <label class="form-label small">BTU/hr</label>
-                <input type="number" class="form-control form-control-sm gas-test-btu-input" min="1" step="5000" placeholder="e.g. 100000" value="${safeBtu}">
+                <div class="d-flex gap-2 align-items-center">
+                    <input type="text" class="form-control form-control-sm gas-test-btu-input" inputmode="numeric" placeholder="e.g. 100,000" value="${safeBtu ? (parseInt(safeBtu, 10) || 0).toLocaleString() : ''}">
+                    <button type="button" class="btn btn-sm btn-outline-secondary gas-test-btu-multiply" title="Multiply BTU by 1,000">[x1,000]</button>
+                </div>
             </div>
             <div class="col-md-2">
                 <button type="button" class="btn btn-sm btn-outline-danger remove-gas-fixture" title="Remove fixture"><i class="fas fa-trash"></i></button>
             </div>
         `;
-        row.querySelector('.gas-test-btu-input').addEventListener('input', updateGasTestTotalBtu);
+        const btuInputEl = row.querySelector('.gas-test-btu-input');
+        btuInputEl.addEventListener('input', function() {
+            const formatted = formatBtuValue(this.value);
+            this.value = formatted;
+            this.setSelectionRange(formatted.length, formatted.length);
+            updateGasTestTotalBtu();
+        });
+        btuInputEl.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                const v = parseBtuValue(this.value) + 5000;
+                this.value = v > 0 ? v.toLocaleString() : '';
+                updateGasTestTotalBtu();
+            } else if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                const v = Math.max(0, parseBtuValue(this.value) - 5000);
+                this.value = v > 0 ? v.toLocaleString() : '';
+                updateGasTestTotalBtu();
+            }
+        });
+        row.querySelector('.gas-test-btu-multiply').addEventListener('click', function() {
+            const btuInput = row.querySelector('.gas-test-btu-input');
+            const current = parseBtuValue(btuInput.value);
+            btuInput.value = (current * 1000).toLocaleString();
+            updateGasTestTotalBtu();
+        });
         row.querySelector('.remove-gas-fixture').addEventListener('click', function() {
             row.remove();
             updateGasTestTotalBtu();
