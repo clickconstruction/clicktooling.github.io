@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Preload the logo to ensure it's visible
         const logoImg = template.querySelector('#companyLogo');
         if (logoImg) {
-            logoImg.src = 'img/logo-wide.png';
+            logoImg.src = 'img/logo.svg';
             logoImg.style.display = 'block';
         }
         

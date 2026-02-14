@@ -27,11 +27,9 @@ A standalone web application for creating professional hydrostatic test reports 
 ### Key Files
 
 - `index.html` - Main application HTML with form and report templates
-- `js/app-fixed.js` - Main JavaScript file with all application logic (fixed version)
-- `js/app.js` - Original JavaScript file (contains duplicate declarations, use app-fixed.js instead)
-- `js/date-fix.js` - Standalone fix for date formatting issues
+- `js/app-fixed.js` - Main JavaScript file with all application logic
 - `css/styles.css` - Custom styling for the application
-- `img/` - Directory containing logo and other images
+- `img/` - Directory containing logo (logo.svg) and favicon
 
 ### JavaScript Architecture
 
@@ -61,13 +59,13 @@ The application uses vanilla JavaScript with the following key components:
 
 1. **Date Formatting Fix (June 2025)**
    - Fixed issue where dates entered in the form weren't displaying correctly in the report
-   - Solution: Updated `formatDate` function to properly parse YYYY-MM-DD format strings
-   - Implementation creates Date objects with explicit year/month/day to avoid timezone issues
+   - The `formatDate` function in `app-fixed.js` parses YYYY-MM-DD format and creates Date objects with explicit year/month/day to avoid timezone issues
 
-2. **JavaScript Structure Fix (June 2025)**
-   - Fixed duplicate variable declarations causing syntax errors
-   - Created `app-fixed.js` as a clean implementation without duplications
-   - Added Bootstrap bundle to ensure proper modal functionality
+2. **Codebase Cleanup**
+   - Consolidated to single JavaScript file (`app-fixed.js`)
+   - Switched report/invoice logos from missing `logo-wide.png` to `logo.svg`
+   - Removed duplicate Bootstrap script load
+   - Removed legacy and backup JavaScript files
 
 ## Development Guide
 
