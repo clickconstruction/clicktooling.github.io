@@ -685,8 +685,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const pressureSection = template.querySelector('#reportGasPressureSection');
                 if (hasPressure) {
                     pressureSection.style.display = '';
-                    const pressureText = `PSI: ${psiVal || '—'}, in WC: ${inWCVal || '—'}, oz/in²: ${ozVal || '—'}, mm WC: ${mmVal || '—'}`;
-                    template.querySelector('#reportGasPressure').textContent = pressureText;
+                    const pressureLines = [
+                        `PSI: ${psiVal || '—'}`,
+                        `WC: ${inWCVal || '—'}`,
+                        `oz/in²: ${ozVal || '—'}`,
+                        `mm/WC: ${mmVal || '—'}`
+                    ];
+                    template.querySelector('#reportGasPressure').innerHTML = pressureLines.join('<br>');
                 } else {
                     pressureSection.style.display = 'none';
                 }
