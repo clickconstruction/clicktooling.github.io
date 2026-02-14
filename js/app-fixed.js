@@ -1328,6 +1328,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const testLocation = document.getElementById('testLocation').value;
         const testType = document.getElementById('testType').value;
+        const supplySewer = document.getElementById('supplySewer').value;
         const testDate = document.getElementById('testDate').value;
         const testDuration = document.getElementById('testDuration').value;
         const systemTested = document.getElementById('systemTested').value;
