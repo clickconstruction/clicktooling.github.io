@@ -1,6 +1,6 @@
-# Click Tooling - Reports for Licensed Professionals
+# Plumbing Tooling - Reports for Licensed Professionals
 
-A standalone web application for creating professional test reports (hydrostatic and gas) for plumbing professionals. This application runs entirely in the browser with no server-side components, making it easy to deploy on any static web hosting service. When sharing links, the page title displays as "Click Tooling - Reports for Licensed Professionals".
+A standalone web application for creating professional test reports (hydrostatic and gas) for plumbing professionals. This application runs entirely in the browser with no server-side components, making it easy to deploy on any static web hosting service. When sharing links, the page title displays as "Plumbing Tooling - Reports for Licensed Professionals".
 
 ## Features
 
@@ -99,7 +99,7 @@ The application uses vanilla JavaScript with the following key components:
    - Removed legacy and backup JavaScript files
 
 3. **Branding**
-   - Page title: "Click Tooling - Reports for Licensed Professionals"
+   - Page title: "Plumbing Tooling - Reports for Licensed Professionals"
 
 4. **Date Formatting**
    - `formatDate` handles YYYY-MM-DD with local timezone
@@ -206,5 +206,5 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- Built for Click Construction / Click Tooling
+- Built for Click Construction / Plumbing Tooling (formerly Click Tooling; moved from clicktooling.com to plumbingtooling.com 2026-08-28)
 - Inspired by the original Click Construction Proposal Generator
